@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "The May",
+    "slug": "the-may",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "themay",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": true
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you log meals."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to capture meal photos."
+        }
+      ]
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.themay.app"
+    },
+    "android": {
+      "package": "com.themay.app"
+    }
+  }
+}

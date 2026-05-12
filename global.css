@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Tell react-native-css-interop to use class-based dark mode instead of
+     a media query. Without this it tries to manually flip color-scheme
+     and throws on web. */
+  --css-interop-darkMode: class dark;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+}
