@@ -30,6 +30,10 @@ export default function RootLayout(): JSX.Element {
                 options={{ presentation: 'modal', headerShown: false }}
               />
               <Stack.Screen
+                name="meal/edit/[id]"
+                options={{ presentation: 'modal', headerShown: false }}
+              />
+              <Stack.Screen
                 name="text-meal"
                 options={{ presentation: 'modal', headerShown: false }}
               />
