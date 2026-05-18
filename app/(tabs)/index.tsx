@@ -2,15 +2,18 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BadgeCelebration } from '@/components/path/BadgeCelebration';
 import { DaySection } from '@/components/path/DaySection';
 import { EmptyDayPlaceholder } from '@/components/path/EmptyDayPlaceholder';
 import { PathHeader } from '@/components/path/PathHeader';
+import { useI18n } from '@/i18n';
 import { useMeals } from '@/hooks/useMeals';
 import { useGoal } from '@/hooks/useProfile';
 import { groupMealsByDay, withEmptyDays } from '@/lib/dayGroup';
 import { startOfDay } from '@/lib/time';
 
 export default function PathScreen(): JSX.Element {
+  const { t } = useI18n();
   const { data: meals } = useMeals();
   const { goal } = useGoal();
   const today = startOfDay(new Date());
@@ -35,6 +38,7 @@ export default function PathScreen(): JSX.Element {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <BadgeCelebration />
       <PathHeader goal={goal} />
       <ScrollView
         ref={scrollRef}
@@ -42,9 +46,7 @@ export default function PathScreen(): JSX.Element {
       >
         {entries.length === 0 ? (
           <View className="items-center px-8 py-16">
-            <Text className="text-ink-soft text-center">
-              No meals yet. Tap Capture to log your first one.
-            </Text>
+            <Text className="text-ink-soft text-center">{t('path.empty')}</Text>
           </View>
         ) : (
           entries.map((entry) => {

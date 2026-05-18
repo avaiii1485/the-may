@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Text, View } from 'react-native';
+import { useI18n } from '@/i18n';
 import { FEELING_EMOJI, type FeelingLevel, type Meal } from '@/types/meal';
 
 interface Props {
@@ -82,19 +83,16 @@ function avgEmoji(avg: number): string {
 }
 
 export function MoodBySourceCard({ meals }: Props): JSX.Element {
+  const { t, tv, d } = useI18n();
   const stats = useMemo(() => aggregate(meals), [meals]);
   const maxCount = stats.reduce((m, s) => Math.max(m, s.count), 0);
 
   return (
     <View>
-      <Text className="text-ink-soft text-xs mb-3">
-        Grouped by how each meal was made.
-      </Text>
+      <Text className="text-ink-soft text-xs mb-3">{t('ins.groupedByMade')}</Text>
 
       {stats.length === 0 ? (
-        <Text className="text-ink-soft text-sm">
-          Pick "How was it made?" and "How did it make you feel?" on Capture to see this.
-        </Text>
+        <Text className="text-ink-soft text-sm">{t('ins.moodSource')}</Text>
       ) : (
         stats.map((s) => {
           const widthPct = maxCount > 0 ? (s.count / maxCount) * 100 : 0;
@@ -108,9 +106,9 @@ export function MoodBySourceCard({ meals }: Props): JSX.Element {
           return (
             <View key={s.source} className="mb-4">
               <View className="flex-row justify-between mb-1">
-                <Text className="text-ink text-sm font-bold">{s.source}</Text>
+                <Text className="text-ink text-sm font-bold">{tv('opt', s.source)}</Text>
                 <Text className="text-ink-mute text-xs">
-                  {s.count} {s.count === 1 ? 'meal' : 'meals'}
+                  {d(s.count)} {s.count === 1 ? t('path.meal') : t('path.meals')}
                 </Text>
               </View>
               <View
@@ -128,20 +126,22 @@ export function MoodBySourceCard({ meals }: Props): JSX.Element {
                   <>
                     <Text className="text-xl mr-1">{avgEmoji(s.avgFeeling)}</Text>
                     <Text className="text-ink-soft text-xs mr-3">
-                      {s.avgFeeling.toFixed(1)} avg
+                      {d(s.avgFeeling.toFixed(1))} {t('ins.avg')}
                     </Text>
                   </>
                 ) : (
-                  <Text className="text-ink-mute text-xs mr-3">No mood data</Text>
+                  <Text className="text-ink-mute text-xs mr-3">{t('ins.noMoodData')}</Text>
                 )}
                 {s.topAfter ? (
                   <Text className="text-xs flex-1" numberOfLines={1}>
-                    <Text className="text-ink-mute">After: </Text>
-                    <Text style={{ color: afterColor, fontWeight: '700' }}>{s.topAfter}</Text>
-                    <Text className="text-ink-mute"> ({s.topAfterPct}%)</Text>
+                    <Text className="text-ink-mute">{t('ins.after')} </Text>
+                    <Text style={{ color: afterColor, fontWeight: '700' }}>
+                      {tv('opt', s.topAfter)}
+                    </Text>
+                    <Text className="text-ink-mute"> ({d(s.topAfterPct)}%)</Text>
                   </Text>
                 ) : (
-                  <Text className="text-ink-mute text-xs">No after-feel tagged</Text>
+                  <Text className="text-ink-mute text-xs">{t('ins.noAfterFeel')}</Text>
                 )}
               </View>
             </View>

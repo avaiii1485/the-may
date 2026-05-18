@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 import { Alert, Platform, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DayCollage } from '@/components/recap/DayCollage';
+import { useI18n } from '@/i18n';
 import { useMeals } from '@/hooks/useMeals';
 import {
   computeFasting,
@@ -24,6 +25,7 @@ function parseDateParam(raw: string | string[] | undefined): Date | null {
 }
 
 export default function DayRecapScreen(): JSX.Element {
+  const { t, d: dg, lang } = useI18n();
   const params = useLocalSearchParams<{ date: string }>();
   const { data: meals } = useMeals();
   const date = parseDateParam(params.date);
@@ -40,27 +42,29 @@ export default function DayRecapScreen(): JSX.Element {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['top']}>
         <View className="items-center justify-center flex-1">
-          <Text className="text-ink-soft">Bad date.</Text>
+          <Text className="text-ink-soft">{t('recap.badDate')}</Text>
           <Pressable onPress={() => router.back()} className="mt-4 px-4 py-2">
-            <Text className="text-bubble-active font-bold">Close</Text>
+            <Text className="text-bubble-active font-bold">{t('common.close')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
     );
   }
 
-  const { dayMonth, weekday, full } = dayHeaderParts(date);
+  const { dayMonth, weekday, full } = dayHeaderParts(date, lang);
   const pct = pctOnPath(dayMeals);
-  const freq = formatFrequency(dayMeals) ?? '—';
-  const fasting = computeFasting(dayMeals, meals) ?? '—';
+  const freq = formatFrequency(dayMeals, lang) ?? '—';
+  const fasting = computeFasting(dayMeals, meals, lang) ?? '—';
 
   const onShare = useCallback(async () => {
     const lines = [
-      `My day on The May — ${full}`,
-      `${pct}% on-path · ${dayMeals.length} ${dayMeals.length === 1 ? 'meal' : 'meals'}`,
+      `${t('recap.trackedWith')} — ${full}`,
+      `${dg(pct)}% ${t('path.onPath')} · ${dg(dayMeals.length)} ${
+        dayMeals.length === 1 ? t('path.meal') : t('path.meals')
+      }`,
     ];
-    if (fasting !== '—') lines.push(`Fasting: ${fasting}`);
-    if (freq !== '—') lines.push(`Frequency: ${freq}`);
+    if (fasting !== '—') lines.push(`${t('recap.fasting')}: ${fasting}`);
+    if (freq !== '—') lines.push(`${t('path.frequency')}: ${freq}`);
     const message = lines.join('\n');
     const title = `The May · ${full}`;
 
@@ -75,7 +79,7 @@ export default function DayRecapScreen(): JSX.Element {
         if (nav?.clipboard?.writeText) {
           await nav.clipboard.writeText(message);
           if (typeof window !== 'undefined') {
-            window.alert('Day recap copied to clipboard.');
+            window.alert(message);
           }
           return;
         }
@@ -92,7 +96,7 @@ export default function DayRecapScreen(): JSX.Element {
         Alert.alert('Could not share', e.message);
       }
     }
-  }, [full, pct, dayMeals.length, fasting, freq]);
+  }, [full, pct, dayMeals.length, fasting, freq, t, dg]);
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -100,7 +104,7 @@ export default function DayRecapScreen(): JSX.Element {
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center"
-          accessibilityLabel="Close"
+          accessibilityLabel={t('common.close')}
         >
           <X size={24} color="#0F172A" />
         </Pressable>
@@ -132,7 +136,7 @@ export default function DayRecapScreen(): JSX.Element {
         <View className="mx-4 rounded-2xl overflow-hidden bg-white border border-slate-200">
           <View className="items-center py-4 px-4">
             <Text className="text-ink text-base font-bold">{full}</Text>
-            <Text className="text-ink-mute text-xs mt-1">Tracked with The May</Text>
+            <Text className="text-ink-mute text-xs mt-1">{t('recap.trackedWith')}</Text>
           </View>
 
           <DayCollage meals={dayMeals} />
@@ -141,16 +145,20 @@ export default function DayRecapScreen(): JSX.Element {
           <View className="flex-row justify-around py-5 bg-white">
             <View className="items-center">
               <Text className="text-ink text-xl font-extrabold">{fasting}</Text>
-              <Text className="text-path-dark text-xs tracking-widest font-bold mt-1">FASTING</Text>
+              <Text className="text-path-dark text-xs tracking-widest font-bold mt-1">
+                {t('recap.fasting')}
+              </Text>
             </View>
             <View className="items-center">
-              <Text className="text-ink text-xl font-extrabold">{pct}%</Text>
-              <Text className="text-path-dark text-xs tracking-widest font-bold mt-1">ON-PATH</Text>
+              <Text className="text-ink text-xl font-extrabold">{dg(pct)}%</Text>
+              <Text className="text-path-dark text-xs tracking-widest font-bold mt-1">
+                {t('recap.onPath')}
+              </Text>
             </View>
             <View className="items-center">
               <Text className="text-ink text-xl font-extrabold">{freq}</Text>
               <Text className="text-path-dark text-xs tracking-widest font-bold mt-1">
-                FREQUENCY
+                {t('recap.frequency')}
               </Text>
             </View>
           </View>
@@ -162,10 +170,12 @@ export default function DayRecapScreen(): JSX.Element {
             onPress={onShare}
             className="flex-row items-center justify-center bg-bubble-active rounded-full py-4"
             accessibilityRole="button"
-            accessibilityLabel="Share your day"
+            accessibilityLabel={t('recap.shareDay')}
           >
             <Share2 size={18} color="#FFFFFF" />
-            <Text className="text-white font-bold tracking-widest ml-2">SHARE YOUR DAY NOW</Text>
+            <Text className="text-white font-bold tracking-widest ml-2">
+              {t('recap.shareDay')}
+            </Text>
           </Pressable>
         </View>
       </ScrollView>

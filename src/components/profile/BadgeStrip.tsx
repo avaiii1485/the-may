@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { BadgeIcon } from './BadgeIcon';
+import { useI18n } from '@/i18n';
 import type { ResolvedBadge } from '@/lib/badges';
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function BadgeStrip({ badges }: Props): JSX.Element {
+  const { t, d } = useI18n();
   const earnedCount = badges.filter((b) => b.progress.earned).length;
   // Order: earned first (newest by id position), then locked sorted by progress desc.
   const sorted = [...badges].sort((a, b) => {
@@ -20,13 +22,15 @@ export function BadgeStrip({ badges }: Props): JSX.Element {
     <Pressable
       onPress={() => router.push('/badges')}
       accessibilityRole="button"
-      accessibilityLabel="Open all badges"
+      accessibilityLabel={t('badges.title')}
     >
       <View className="flex-row items-center justify-between px-5 pt-5 pb-2">
-        <Text className="text-xs uppercase tracking-widest text-ink-mute">Badges</Text>
+        <Text className="text-xs uppercase tracking-widest text-ink-mute">
+          {t('profile.badges')}
+        </Text>
         <View className="flex-row items-center">
           <Text className="text-ink-soft text-sm font-bold mr-1">
-            {earnedCount} of {badges.length}
+            {d(earnedCount)} {t('badges.of')} {d(badges.length)}
           </Text>
           <ChevronRight size={16} color="#94A3B8" />
         </View>

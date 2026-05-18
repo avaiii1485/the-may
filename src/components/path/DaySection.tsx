@@ -5,6 +5,7 @@ import { DayEndArrow } from './DayEndArrow';
 import { DayHeader } from './DayHeader';
 import { DayRecap } from './DayRecap';
 import { MealRow } from './MealRow';
+import { useI18n } from '@/i18n';
 import { dayLabel, formatFrequency, pctOnPath } from '@/lib/dayGroup';
 import { startOfDay } from '@/lib/time';
 import type { Meal } from '@/types/meal';
@@ -16,8 +17,9 @@ interface Props {
 }
 
 export function DaySection({ date, meals, today }: Props): JSX.Element {
+  const { lang } = useI18n();
   const isToday = startOfDay(date).getTime() === today.getTime();
-  const label = dayLabel(date, today);
+  const label = dayLabel(date, today, lang);
   const last = meals[meals.length - 1];
 
   return (
@@ -48,7 +50,7 @@ export function DaySection({ date, meals, today }: Props): JSX.Element {
         date={date}
         pct={pctOnPath(meals)}
         mealCount={meals.length}
-        frequency={formatFrequency(meals)}
+        frequency={formatFrequency(meals, lang)}
       />
     </View>
   );

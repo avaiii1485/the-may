@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 import { BubblePill } from './BubblePill';
+import { useI18n } from '@/i18n';
 
 interface MultiProps {
   label: string;
@@ -9,6 +10,7 @@ interface MultiProps {
 }
 
 export function MultiSelectSection({ label, options, selected, onToggle }: MultiProps): JSX.Element {
+  const { tv } = useI18n();
   return (
     <View className="bg-bg-card rounded-2xl p-4 mb-3">
       <Text className="text-base font-semibold text-ink mb-3">{label}</Text>
@@ -16,7 +18,7 @@ export function MultiSelectSection({ label, options, selected, onToggle }: Multi
         {options.map((opt) => (
           <BubblePill
             key={opt}
-            label={opt}
+            label={tv('opt', opt)}
             active={selected.includes(opt)}
             onPress={() => onToggle(opt)}
           />
@@ -39,6 +41,7 @@ export function SingleSelectSection<T extends string>({
   selected,
   onSelect,
 }: SingleProps<T>): JSX.Element {
+  const { tv } = useI18n();
   return (
     <View className="bg-bg-card rounded-2xl p-4 mb-3">
       <Text className="text-base font-semibold text-ink mb-3">{label}</Text>
@@ -46,7 +49,7 @@ export function SingleSelectSection<T extends string>({
         {options.map((opt) => (
           <BubblePill
             key={opt}
-            label={opt}
+            label={tv('opt', opt)}
             active={selected === opt}
             onPress={() => onSelect(opt)}
           />

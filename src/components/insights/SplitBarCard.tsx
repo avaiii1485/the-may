@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native';
+import { useI18n } from '@/i18n';
 import type { Meal } from '@/types/meal';
 
 export interface BarItem {
@@ -8,7 +9,7 @@ export interface BarItem {
 }
 
 interface Props {
-  title: string;
+  title?: string;
   emptyHint: string;
   extract: (meal: Meal) => string[];
   meals: Meal[];
@@ -33,6 +34,7 @@ function aggregate(meals: Meal[], extract: (m: Meal) => string[]): BarItem[] {
 }
 
 export function SplitBarCard({ title: _title, emptyHint, extract, meals }: Props): JSX.Element {
+  const { t, tv, d: dg } = useI18n();
   const data = aggregate(meals, extract);
   const maxTotal = data.reduce((m, d) => Math.max(m, d.onPath + d.offPath), 0);
 
@@ -42,11 +44,11 @@ export function SplitBarCard({ title: _title, emptyHint, extract, meals }: Props
         <View
           style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: ON_COLOR, marginRight: 4 }}
         />
-        <Text className="text-[10px] text-ink-mute mr-3">On-path</Text>
+        <Text className="text-[10px] text-ink-mute mr-3">{t('ins.legendOn')}</Text>
         <View
           style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: OFF_COLOR, marginRight: 4 }}
         />
-        <Text className="text-[10px] text-ink-mute">Off-path</Text>
+        <Text className="text-[10px] text-ink-mute">{t('ins.legendOff')}</Text>
       </View>
 
       {data.length === 0 ? (
@@ -59,9 +61,10 @@ export function SplitBarCard({ title: _title, emptyHint, extract, meals }: Props
           return (
             <View key={d.label} className="mb-3">
               <View className="flex-row justify-between mb-1">
-                <Text className="text-ink text-sm font-semibold">{d.label}</Text>
+                <Text className="text-ink text-sm font-semibold">{tv('opt', d.label)}</Text>
                 <Text className="text-ink-soft text-xs">
-                  {total} {total === 1 ? 'meal' : 'meals'} · {onShare}% on
+                  {dg(total)} {total === 1 ? t('path.meal') : t('path.meals')} · {dg(onShare)}%{' '}
+                  {t('ins.legendOn')}
                 </Text>
               </View>
               <View

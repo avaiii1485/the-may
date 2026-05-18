@@ -12,7 +12,7 @@ const HEIGHT = 56;
 export function DayEndArrow({ fromOnPath }: Props): JSX.Element {
   const startX = fromOnPath ? CENTER_X_PCT : 22;
   return (
-    <View style={{ flexDirection: 'row' }}>
+    <View style={{ flexDirection: 'row', direction: 'ltr' }}>
       <View style={{ width: LEFT_SPACER }} />
       <View style={{ flex: 1 }}>
         <Svg width="100%" height={HEIGHT} viewBox={`0 0 100 ${HEIGHT}`} preserveAspectRatio="none">

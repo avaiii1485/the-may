@@ -1,5 +1,6 @@
 import { createElement, type ChangeEvent } from 'react';
 import { Text, View } from 'react-native';
+import { useI18n } from '@/i18n';
 
 interface Props {
   value: string;
@@ -31,6 +32,7 @@ const inputStyle = {
 } as const;
 
 export function DateTimeRow({ value, onChange }: Props): JSX.Element {
+  const { t } = useI18n();
   const { date, time } = isoToParts(value);
   const dateInput = createElement('input', {
     type: 'date',
@@ -47,11 +49,11 @@ export function DateTimeRow({ value, onChange }: Props): JSX.Element {
   return (
     <View className="flex-row" style={{ gap: 12 }}>
       <View className="flex-1">
-        <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">Date</Text>
+        <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">{t('datetime.date')}</Text>
         {dateInput}
       </View>
       <View className="flex-1">
-        <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">Time</Text>
+        <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">{t('datetime.time')}</Text>
         {timeInput}
       </View>
     </View>

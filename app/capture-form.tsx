@@ -11,6 +11,7 @@ import {
 } from '@/components/capture/ReflectionSection';
 import { SaveAsBar } from '@/components/capture/SaveAsBar';
 import { LoadingOverlay } from '@/components/common/LoadingOverlay';
+import { useI18n } from '@/i18n';
 import { useCreateMeal } from '@/hooks/useMeals';
 import { useCaptureDraftStore } from '@/stores/captureDraftStore';
 import { QUESTIONS, type DraftMeal } from '@/types/meal';
@@ -22,6 +23,7 @@ function nowIso(): string {
 }
 
 export default function CaptureFormScreen(): JSX.Element {
+  const { t } = useI18n();
   const draft = useCaptureDraftStore((s) => s.draft);
   const setNote = useCaptureDraftStore((s) => s.setNote);
   const setEatenAt = useCaptureDraftStore((s) => s.setEatenAt);
@@ -73,7 +75,7 @@ export default function CaptureFormScreen(): JSX.Element {
         <Pressable onPress={() => router.back()} className="w-10 h-10 items-center justify-center">
           <X size={24} color="#0F172A" />
         </Pressable>
-        <Text className="text-lg font-bold text-ink">Uncover the why</Text>
+        <Text className="text-lg font-bold text-ink">{t('capture.uncoverWhy')}</Text>
         <View className="w-10" />
       </View>
 
@@ -106,7 +108,7 @@ export default function CaptureFormScreen(): JSX.Element {
           </View>
         ) : (
           <View className="w-full aspect-square rounded-2xl bg-bg-card mb-4 items-center justify-center">
-            <Text className="text-ink-mute">No photo — text-only meal</Text>
+            <Text className="text-ink-mute">{t('capture.noPhoto')}</Text>
           </View>
         )}
 
@@ -114,18 +116,18 @@ export default function CaptureFormScreen(): JSX.Element {
             in the right place on the timeline. */}
         <View className="bg-bg-card rounded-2xl p-4 mb-3">
           <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
-            When did you eat?
+            {t('capture.whenAteTitle')}
           </Text>
           <DateTimeRow value={isoValue} onChange={setEatenAt} />
         </View>
 
         <View className="mb-3">
-          <Text className="text-base font-bold text-ink mb-1">Note</Text>
+          <Text className="text-base font-bold text-ink mb-1">{t('capture.note')}</Text>
           <View className="flex-row items-center border-b border-slate-200 pb-2">
             <TextInput
               value={draft.note}
               onChangeText={setNote}
-              placeholder="Add notes"
+              placeholder={t('capture.addNotes')}
               placeholderTextColor="#94A3B8"
               className="flex-1 text-ink"
               multiline
@@ -135,12 +137,12 @@ export default function CaptureFormScreen(): JSX.Element {
         </View>
 
         <View className="flex-row items-center justify-between mb-2 mt-2">
-          <Text className="text-lg font-bold text-ink">Q&As</Text>
-          <Text className="text-bubble-active font-semibold">Customize</Text>
+          <Text className="text-lg font-bold text-ink">{t('capture.qas')}</Text>
+          <Text className="text-bubble-active font-semibold">{t('capture.customize')}</Text>
         </View>
 
         <MultiSelectSection
-          label={QUESTIONS.whyEat.label}
+          label={t('q.whyEat')}
           options={QUESTIONS.whyEat.options}
           selected={draft.whyEat}
           onToggle={(v) => toggleMulti('whyEat', v)}
@@ -149,35 +151,35 @@ export default function CaptureFormScreen(): JSX.Element {
         <FeelingRow selected={draft.feeling} onSelect={setFeeling} />
 
         <MultiSelectSection
-          label={QUESTIONS.ateWith.label}
+          label={t('q.ateWith')}
           options={QUESTIONS.ateWith.options}
           selected={draft.ateWith}
           onToggle={(v) => toggleMulti('ateWith', v)}
         />
 
         <SingleSelectSection<NonNullable<DraftMeal['howWasIt']>>
-          label={QUESTIONS.howWasIt.label}
+          label={t('q.howWasIt')}
           options={QUESTIONS.howWasIt.options}
           selected={draft.howWasIt}
           onSelect={(v) => setSingle('howWasIt', v)}
         />
 
         <MultiSelectSection
-          label={QUESTIONS.whereEat.label}
+          label={t('q.whereEat')}
           options={QUESTIONS.whereEat.options}
           selected={draft.whereEat}
           onToggle={(v) => toggleMulti('whereEat', v)}
         />
 
         <SingleSelectSection<NonNullable<DraftMeal['howMade']>>
-          label={QUESTIONS.howMade.label}
+          label={t('q.howMade')}
           options={QUESTIONS.howMade.options}
           selected={draft.howMade}
           onSelect={(v) => setSingle('howMade', v)}
         />
 
         <MultiSelectSection
-          label={QUESTIONS.madeMeFeel.label}
+          label={t('q.madeMeFeel')}
           options={QUESTIONS.madeMeFeel.options}
           selected={draft.madeMeFeel}
           onToggle={(v) => toggleMulti('madeMeFeel', v)}

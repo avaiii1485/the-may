@@ -8,6 +8,7 @@ import {
   weekRange,
   weekStats,
 } from '@/lib/weekCompare';
+import { useI18n } from '@/i18n';
 import type { Meal } from '@/types/meal';
 
 interface Props {
@@ -18,12 +19,19 @@ interface StatBlockProps {
   label: string;
   value: string;
   delta: number;
-  deltaSuffix: string;
-  /** 'higher' = green when up; 'either' = neutral coloring regardless */
+  deltaText: string;
+  vsLabel: string;
   betterIs: 'higher' | 'either';
 }
 
-function StatBlock({ label, value, delta, deltaSuffix, betterIs }: StatBlockProps): JSX.Element {
+function StatBlock({
+  label,
+  value,
+  delta,
+  deltaText,
+  vsLabel,
+  betterIs,
+}: StatBlockProps): JSX.Element {
   const isFlat = delta === 0;
   let color = '#94A3B8';
   if (!isFlat && betterIs === 'higher') {
@@ -37,18 +45,18 @@ function StatBlock({ label, value, delta, deltaSuffix, betterIs }: StatBlockProp
       <Text className="text-ink text-3xl font-bold">{value}</Text>
       <View className="flex-row items-center mt-1">
         <Icon size={14} color={color} />
-        <Text style={{ color }} className="text-sm font-bold ml-1">
+        <Text style={{ color }} className="text-sm font-bold mx-1">
           {sign}
-          {Math.abs(delta)}
-          {deltaSuffix}
+          {deltaText}
         </Text>
-        <Text className="text-ink-mute text-xs ml-1">vs last week</Text>
+        <Text className="text-ink-mute text-xs">{vsLabel}</Text>
       </View>
     </View>
   );
 }
 
 export function WeekDelta({ meals }: Props): JSX.Element {
+  const { t, d, lang } = useI18n();
   const { cur, prev, change } = useMemo(() => {
     const now = new Date();
     const thisWeek = weekRange(now);
@@ -58,40 +66,41 @@ export function WeekDelta({ meals }: Props): JSX.Element {
     return {
       cur: weekStats(curMeals),
       prev: weekStats(prevMeals),
-      change: biggestChange(curMeals, prevMeals),
+      change: biggestChange(curMeals, prevMeals, lang),
     };
-  }, [meals]);
+  }, [meals, lang]);
 
   if (cur.total === 0 && prev.total === 0) {
-    return (
-      <Text className="text-ink-soft text-sm">
-        Log meals across two weeks and you'll see week-over-week trends here.
-      </Text>
-    );
+    return <Text className="text-ink-soft text-sm">{t('ins.thisWeekEmpty')}</Text>;
   }
+
+  const pctDelta = cur.pct - prev.pct;
+  const mealsDelta = cur.total - prev.total;
 
   return (
     <View>
       <View className="flex-row">
         <StatBlock
-          label="On-path"
-          value={`${cur.pct}%`}
-          delta={cur.pct - prev.pct}
-          deltaSuffix="pp"
+          label={t('ins.statOnPath')}
+          value={`${d(cur.pct)}%`}
+          delta={pctDelta}
+          deltaText={`${d(Math.abs(pctDelta))}pp`}
+          vsLabel={t('ins.vsLastWeek')}
           betterIs="higher"
         />
         <StatBlock
-          label="Meals"
-          value={`${cur.total}`}
-          delta={cur.total - prev.total}
-          deltaSuffix=""
+          label={t('ins.statMeals')}
+          value={`${d(cur.total)}`}
+          delta={mealsDelta}
+          deltaText={d(Math.abs(mealsDelta))}
+          vsLabel={t('ins.vsLastWeek')}
           betterIs="either"
         />
       </View>
       {change ? (
         <View className="mt-3 pt-3 border-t border-slate-200">
           <Text className="text-[10px] uppercase tracking-widest text-ink-mute mb-1">
-            Biggest change
+            {t('ins.biggestChange')}
           </Text>
           <Text className="text-ink text-sm font-semibold">{change}</Text>
         </View>

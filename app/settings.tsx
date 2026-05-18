@@ -3,6 +3,7 @@ import { Check, ChevronRight, Pencil, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useI18n } from '@/i18n';
 import { useGoal, useSetGoal } from '@/hooks/useProfile';
 
 const PRESET_GOALS: readonly string[] = [
@@ -19,6 +20,7 @@ const PRESET_GOALS: readonly string[] = [
 ] as const;
 
 export default function SettingsScreen(): JSX.Element {
+  const { t, tv } = useI18n();
   const { goal } = useGoal();
   const setGoal = useSetGoal();
   const [custom, setCustom] = useState('');
@@ -50,18 +52,16 @@ export default function SettingsScreen(): JSX.Element {
         >
           <X size={22} color="#0F172A" />
         </Pressable>
-        <Text className="text-lg font-bold text-ink">Current focus</Text>
+        <Text className="text-lg font-bold text-ink">{t('settings.currentFocus')}</Text>
         <View className="w-10" />
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View className="px-5 py-6 items-center">
           <Text className="text-xl font-extrabold text-ink text-center">
-            Experiment with various eating approaches
+            {t('settings.title')}
           </Text>
-          <Text className="text-ink-soft text-center mt-2">
-            See what works for you. Pick one focus at a time — it shows at the top of your Path.
-          </Text>
+          <Text className="text-ink-soft text-center mt-2">{t('settings.subtitle')}</Text>
         </View>
 
         <View className="px-4">
@@ -76,14 +76,14 @@ export default function SettingsScreen(): JSX.Element {
                 }`}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isActive }}
-                accessibilityLabel={preset}
+                accessibilityLabel={tv('focus', preset)}
               >
                 <Text
                   className={`text-ink font-bold tracking-wide uppercase text-[13px] flex-1 pr-2 ${
                     isActive ? 'text-path-dark' : ''
                   }`}
                 >
-                  {preset}
+                  {tv('focus', preset)}
                 </Text>
                 {isActive ? (
                   <Check size={20} color="#D6791F" />
@@ -97,13 +97,13 @@ export default function SettingsScreen(): JSX.Element {
 
         <View className="px-5 mt-6">
           <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
-            Or create your own
+            {t('settings.orOwn')}
           </Text>
           <View className="flex-row items-center border-b border-slate-200 pb-2">
             <TextInput
               value={custom}
               onChangeText={setCustom}
-              placeholder="e.g. Feeling happy and healthy"
+              placeholder={t('settings.ownPlaceholder')}
               placeholderTextColor="#94A3B8"
               className="flex-1 text-ink text-base"
               multiline
@@ -117,9 +117,11 @@ export default function SettingsScreen(): JSX.Element {
               custom.trim().length === 0 ? 'bg-ink-mute' : 'bg-bubble-active'
             }`}
             accessibilityRole="button"
-            accessibilityLabel="Save custom focus"
+            accessibilityLabel={t('settings.saveFocus')}
           >
-            <Text className="text-white font-bold tracking-widest">SAVE FOCUS</Text>
+            <Text className="text-white font-bold tracking-widest">
+              {t('settings.saveFocus')}
+            </Text>
           </Pressable>
         </View>
       </ScrollView>

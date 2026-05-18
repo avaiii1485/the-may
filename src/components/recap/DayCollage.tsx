@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 import { CollageTile } from './CollageTile';
+import { useI18n } from '@/i18n';
 import type { Meal } from '@/types/meal';
 
 interface Props {
@@ -11,11 +12,12 @@ interface Props {
 // 1: single tile · 2: two columns · 3: tall left + two stacked right ·
 // 4: 2×2 · 5–6: 3 cols × 2 rows · 7–9: 3×3 · 10+: 3 cols, wrapped rows.
 export function DayCollage({ meals, height = 380 }: Props): JSX.Element {
+  const { t } = useI18n();
   const n = meals.length;
   if (n === 0) {
     return (
       <View style={{ height, alignItems: 'center', justifyContent: 'center' }}>
-        <Text className="text-ink-mute">No meals on this day.</Text>
+        <Text className="text-ink-mute">{t('recap.noMeals')}</Text>
       </View>
     );
   }

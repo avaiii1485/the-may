@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
+import { useI18n } from '@/i18n';
 import { FEELING_EMOJI, type FeelingLevel } from '@/types/meal';
 
 interface Props {
@@ -7,9 +8,10 @@ interface Props {
 }
 
 export function FeelingRow({ selected, onSelect }: Props): JSX.Element {
+  const { t } = useI18n();
   return (
     <View className="bg-bg-card rounded-2xl p-4 mb-3">
-      <Text className="text-base font-semibold text-ink mb-3">How am I feeling?</Text>
+      <Text className="text-base font-semibold text-ink mb-3">{t('q.feeling')}</Text>
       <View className="flex-row justify-around">
         {FEELING_EMOJI.map((emoji, idx) => {
           const level = idx as FeelingLevel;

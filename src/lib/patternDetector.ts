@@ -1,4 +1,26 @@
+import { toFaDigits, tvStatic } from '@/i18n';
+import type { Lang } from '@/stores/languageStore';
 import type { Meal } from '@/types/meal';
+
+const DOW_FA = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'] as const;
+const TOD_FA: Record<string, string> = {
+  'in the morning': 'صبح‌ها',
+  'in the afternoon': 'بعدازظهرها',
+  'in the evening': 'عصرها',
+  'late at night': 'آخر شب',
+};
+const CAT_FA: Record<string, string> = {
+  'Where you eat': 'کجا غذا می‌خوری',
+  'Who you eat with': 'با کی غذا می‌خوری',
+  'How meals are made': 'روش تهیه',
+  'Why you eat': 'چرا غذا می‌خوری',
+  'Day of the week': 'روز هفته',
+  'Time of day': 'ساعتِ روز',
+  'How meals made you feel': 'حسِ بعد از غذا',
+};
+function faCategory(en: string): string {
+  return CAT_FA[en] ?? en;
+}
 
 export interface Insight {
   /** A complete, user-facing sentence */
@@ -68,15 +90,63 @@ function timeBucket(hour: number): { key: string; label: string } {
   return { key: 'late-night', label: 'late at night' };
 }
 
+type Dim = 'where' | 'with' | 'made' | 'why' | 'dow' | 'tod' | 'feel' | 'after';
+
 function buildSentence(
   pct: number,
   overall: number,
   count: number,
-  dimension: 'where' | 'with' | 'made' | 'why' | 'dow' | 'tod' | 'feel' | 'after',
+  dimension: Dim,
   value: string,
+  lang: Lang,
 ): { text: string; direction: 'on' | 'off' } {
   const percent = Math.round(pct * 100);
   const direction: 'on' | 'off' = pct >= overall ? 'on' : 'off';
+
+  if (lang === 'fa') {
+    const shownFa = toFaDigits(direction === 'on' ? percent : 100 - percent);
+    const wordFa = direction === 'on' ? 'روی مسیر' : 'خارج از مسیر';
+    const cFa = `(${toFaDigits(count)} وعده)`;
+    const optFa = (): string => tvStatic('fa', 'opt', value);
+    let body: string;
+    switch (dimension) {
+      case 'where':
+        body = `${shownFa}٪ از وعده‌هایی که ${optFa()} خوردی ${wordFa} بود`;
+        break;
+      case 'with':
+        body =
+          value === 'By myself'
+            ? `${shownFa}٪ از وعده‌هایی که تنها خوردی ${wordFa} بود`
+            : `${shownFa}٪ از وعده‌هایت با ${optFa()} ${wordFa} بود`;
+        break;
+      case 'made':
+        body = `${shownFa}٪ از وعده‌های ${optFa()} ${wordFa} بود`;
+        break;
+      case 'why':
+        body = `وقتی به‌خاطر «${optFa()}» غذا خوردی، ${shownFa}٪ مواقع ${wordFa} بودی`;
+        break;
+      case 'dow': {
+        const idx = DAY_NAMES.indexOf(value as (typeof DAY_NAMES)[number]);
+        const wd = idx >= 0 ? DOW_FA[idx] : value;
+        body =
+          direction === 'on'
+            ? `${wd}‌ها بهترین روزِ توست — ${shownFa}٪ ${wordFa}`
+            : `${wd}‌ها روزهای سخت‌تری‌اند — ${shownFa}٪ ${wordFa}`;
+        break;
+      }
+      case 'tod':
+        body = `${shownFa}٪ از وعده‌های ${TOD_FA[value] ?? value} ${wordFa} بود`;
+        break;
+      case 'after':
+        body = `${shownFa}٪ از وعده‌هایی که حسِ «${optFa()}» داد ${wordFa} بود`;
+        break;
+      case 'feel':
+        body = `${shownFa}٪ از وعده‌هایی که حس ${value} داشتی ${wordFa} بود`;
+        break;
+    }
+    return { text: `${body}. ${cFa}`, direction };
+  }
+
   const word = direction === 'on' ? 'on-path' : 'off-path';
   const shown = direction === 'on' ? percent : 100 - percent;
   const verb = direction === 'on' ? "you're" : 'you go';
@@ -128,14 +198,14 @@ function buildSentence(
   }
 }
 
-export function detectInsights(meals: Meal[]): Insight[] {
+export function detectInsights(meals: Meal[], lang: Lang = 'en'): Insight[] {
   if (meals.length < MIN_TOTAL_MEALS) return [];
   const overall = meals.filter((m) => m.onPath).length / meals.length;
   const out: Insight[] = [];
 
   const consider = (
     bucket: Bucket,
-    dimension: Parameters<typeof buildSentence>[3],
+    dimension: Dim,
     value: string,
     categoryLabel: string,
   ) => {
@@ -143,9 +213,16 @@ export function detectInsights(meals: Meal[]): Insight[] {
     const pct = bucket.onPath / bucket.count;
     const deviation = Math.abs(pct - overall);
     if (deviation < MIN_DEVIATION) return;
-    const { text, direction } = buildSentence(pct, overall, bucket.count, dimension, value);
+    const { text, direction } = buildSentence(pct, overall, bucket.count, dimension, value, lang);
     const impact = deviation * Math.sqrt(bucket.count);
-    out.push({ text, category: categoryLabel, direction, pct, count: bucket.count, impact });
+    out.push({
+      text,
+      category: lang === 'fa' ? faCategory(categoryLabel) : categoryLabel,
+      direction,
+      pct,
+      count: bucket.count,
+      impact,
+    });
   };
 
   // Where you ate

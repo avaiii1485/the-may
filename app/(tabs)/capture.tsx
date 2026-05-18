@@ -4,9 +4,11 @@ import { ImageIcon, Type, X, Zap, ZapOff } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useI18n } from '@/i18n';
 import { useCaptureDraftStore } from '@/stores/captureDraftStore';
 
 export default function CaptureScreen(): JSX.Element {
+  const { t } = useI18n();
   const setPhotoUri = useCaptureDraftStore((s) => s.setPhotoUri);
   const reset = useCaptureDraftStore((s) => s.reset);
   const [flash, setFlash] = useState(false);
@@ -48,7 +50,7 @@ export default function CaptureScreen(): JSX.Element {
         >
           <X size={26} color="#FFFFFF" />
         </Pressable>
-        <Text className="text-white text-lg font-semibold">Add meal photo</Text>
+        <Text className="text-white text-lg font-semibold">{t('capture.addPhoto')}</Text>
         <Pressable
           onPress={() => setFlash((f) => !f)}
           className="w-10 h-10 items-center justify-center"
@@ -64,9 +66,7 @@ export default function CaptureScreen(): JSX.Element {
           className="aspect-square w-full max-w-[420px] rounded-2xl border border-white/30 bg-black/40 items-center justify-center"
         >
           <Text className="text-white/70 text-center px-6">
-            {Platform.OS === 'web'
-              ? 'Tap the shutter or import a photo'
-              : 'Camera preview here on device'}
+            {Platform.OS === 'web' ? t('capture.previewWeb') : t('capture.previewNative')}
           </Text>
         </View>
       </View>
@@ -78,7 +78,7 @@ export default function CaptureScreen(): JSX.Element {
           accessibilityLabel="Add meal via text"
         >
           <Type size={26} color="#FFFFFF" />
-          <Text className="text-white text-xs mt-1">meal via text</Text>
+          <Text className="text-white text-xs mt-1">{t('capture.viaText')}</Text>
         </Pressable>
         <Pressable
           onPress={() => launchPicker('camera')}
@@ -91,7 +91,7 @@ export default function CaptureScreen(): JSX.Element {
           accessibilityLabel="Import photo"
         >
           <ImageIcon size={26} color="#FFFFFF" />
-          <Text className="text-white text-xs mt-1">import photo</Text>
+          <Text className="text-white text-xs mt-1">{t('capture.import')}</Text>
         </Pressable>
       </View>
     </SafeAreaView>

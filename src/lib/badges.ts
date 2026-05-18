@@ -1,9 +1,82 @@
+import { toFaDigits } from '@/i18n';
+import type { Lang } from '@/stores/languageStore';
 import type { Meal } from '@/types/meal';
 
 export interface BadgeProgress {
   earned: boolean;
   ratio: number; // 0..1
   statusText: string;
+}
+
+// Persian name/description per badge id (English stays in BADGES below).
+const BADGE_FA: Record<string, { name: string; description: string }> = {
+  'first-bite': { name: 'اولین لقمه', description: 'همین حالا اولین وعده‌ات رو ثبت کن.' },
+  consistent: { name: 'پایدار', description: '10 وعده ثبت کن.' },
+  'plate-master': { name: 'استاد بشقاب', description: '50 وعده ثبت کن.' },
+  centurion: { name: 'صدتایی', description: '100 وعده ثبت کن.' },
+  'day-one': { name: 'روز اول', description: 'یک روز ثبت داشته باش.' },
+  'week-one': { name: 'هفته‌ی اول', description: 'در 7 روز مختلف ثبت کن.' },
+  monthlong: { name: 'یک ماه', description: 'در 30 روز مختلف ثبت کن.' },
+  'on-path-5': { name: 'روی مسیر', description: '5 وعده‌ی روی مسیر داشته باش.' },
+  bullseye: { name: 'وسط هدف', description: 'به 20 وعده‌ی روی مسیر برس.' },
+  mindful: { name: 'با آگاهی', description: 'با 20+ وعده، 80٪ روی مسیر بمون.' },
+  pathfinder: { name: 'راه‌بلد', description: 'با 50+ وعده، 90٪ روی مسیر بمون.' },
+  'self-reflective': { name: 'اهل تأمل', description: 'برای 5 وعده یادداشت بنویس.' },
+  'mood-tracker': { name: 'ردیاب حال', description: 'برای 15 وعده حس‌ات رو ثبت کن.' },
+  'first-snap': { name: 'اولین عکس', description: 'یک وعده با عکس ثبت کن.' },
+  wordsmith: { name: 'اهل قلم', description: 'یک وعده فقط با متن ثبت کن.' },
+  focused: { name: 'متمرکز', description: 'یک تمرکز دلخواه بساز.' },
+  identity: { name: 'هویت', description: 'نام و شناسه‌ات رو در پروفایل پر کن.' },
+  'early-bird': { name: 'سحرخیز', description: 'یک وعده قبل از 8 صبح ثبت کن.' },
+  'night-owl': { name: 'شب‌زنده‌دار', description: 'یک وعده بعد از 10 شب ثبت کن.' },
+  'home-cook': { name: 'آشپز خونگی', description: '10 وعده‌ی خونگی ثبت کن.' },
+  'around-town': { name: 'دور شهر', description: 'در 5 جای مختلف غذا بخور.' },
+  'people-person': { name: 'اهل جمع', description: 'با هر 5 نوع همراه غذا بخور.' },
+};
+
+function faStatus(en: string): string {
+  let s = en;
+  const map: [RegExp, string][] = [
+    [/on-path meals/g, 'وعده‌ی روی مسیر'],
+    [/homemade meals/g, 'وعده‌ی خونگی'],
+    [/meals to qualify/g, 'وعده تا واجد شرایط شدن'],
+    [/notes added/g, 'یادداشت'],
+    [/moods tagged/g, 'حسِ ثبت‌شده'],
+    [/company types/g, 'نوع همراه'],
+    [/on-path · need/g, 'روی مسیر · باید'],
+    [/meals/g, 'وعده'],
+    [/days/g, 'روز'],
+    [/places/g, 'مکان'],
+    [/Photo logged/g, 'عکس ثبت شد'],
+    [/No photo logged yet/g, 'هنوز عکسی ثبت نشده'],
+    [/Text meal logged/g, 'وعده‌ی متنی ثبت شد'],
+    [/No text meal yet/g, 'هنوز وعده‌ی متنی نیست'],
+    [/Custom focus set/g, 'تمرکز دلخواه تنظیم شد'],
+    [/Pick a focus from the gear icon/g, 'از آیکن چرخ‌دنده یک تمرکز انتخاب کن'],
+    [/fields filled/g, 'فیلد پر شده'],
+    [/Logged before 8 AM/g, 'قبل از 8 صبح ثبت شد'],
+    [/Log a meal before 8 AM/g, 'یک وعده قبل از 8 صبح ثبت کن'],
+    [/Logged after 10 PM/g, 'بعد از 10 شب ثبت شد'],
+    [/Log a meal after 10 PM/g, 'یک وعده بعد از 10 شب ثبت کن'],
+  ];
+  for (const [re, rep] of map) s = s.replace(re, rep);
+  return toFaDigits(s);
+}
+
+export function localizeBadge(
+  id: string,
+  defName: string,
+  defDescription: string,
+  status: string,
+  lang: Lang,
+): { name: string; description: string; statusText: string } {
+  if (lang !== 'fa') return { name: defName, description: defDescription, statusText: status };
+  const fa = BADGE_FA[id];
+  return {
+    name: fa?.name ?? defName,
+    description: fa?.description ?? defDescription,
+    statusText: faStatus(status),
+  };
 }
 
 export type BadgeCategory =
@@ -385,8 +458,20 @@ export function computeBadgeProgress(id: string, ctx: BadgeContext): BadgeProgre
 export interface ResolvedBadge {
   def: BadgeDef;
   progress: BadgeProgress;
+  /** Localized for display (falls back to def values for English). */
+  name: string;
+  description: string;
 }
 
-export function getAllBadges(ctx: BadgeContext): ResolvedBadge[] {
-  return BADGES.map((def) => ({ def, progress: computeBadgeProgress(def.id, ctx) }));
+export function getAllBadges(ctx: BadgeContext, lang: Lang = 'en'): ResolvedBadge[] {
+  return BADGES.map((def) => {
+    const progress = computeBadgeProgress(def.id, ctx);
+    const loc = localizeBadge(def.id, def.name, def.description, progress.statusText, lang);
+    return {
+      def,
+      progress: { ...progress, statusText: loc.statusText },
+      name: loc.name,
+      description: loc.description,
+    };
+  });
 }

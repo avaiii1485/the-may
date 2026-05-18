@@ -21,7 +21,7 @@ export function ConnectorRow({ fromOnPath, toOnPath }: Props): JSX.Element {
   const h = SEGMENT_HEIGHT;
 
   return (
-    <View style={{ flexDirection: 'row' }}>
+    <View style={{ flexDirection: 'row', direction: 'ltr' }}>
       <View style={{ width: LEFT_SPACER }} />
       <View style={{ flex: 1 }}>
         <Svg

@@ -14,6 +14,7 @@ import { SplitBarCard } from '@/components/insights/SplitBarCard';
 import { TodaysExperiment } from '@/components/insights/TodaysExperiment';
 import { WeekDelta } from '@/components/insights/WeekDelta';
 import { useMeals } from '@/hooks/useMeals';
+import { useI18n } from '@/i18n';
 import { useInsights } from '@/hooks/useInsights';
 import { useGoal } from '@/hooks/useProfile';
 import { usePinnedInsightsStore } from '@/stores/pinnedInsightsStore';
@@ -27,6 +28,7 @@ interface CardDef {
 }
 
 export default function InsightsScreen(): JSX.Element {
+  const { t, tv, d } = useI18n();
   const insights = useInsights();
   const { goal } = useGoal();
   const { data: allMeals } = useMeals();
@@ -43,42 +45,40 @@ export default function InsightsScreen(): JSX.Element {
   const cards: CardDef[] = [
     {
       id: 'top-insight',
-      title: 'Your top insight',
+      title: t('ins.topInsight'),
       leftAdornment: <Sparkles size={14} color="#D6791F" />,
       content: <PatternCard meals={allMeals} />,
     },
     {
       id: 'fasting',
-      title: 'Time since last meal',
+      title: t('ins.fasting'),
       leftAdornment: <Clock size={14} color="#D6791F" />,
       content: <FastingCounter meals={allMeals} />,
     },
     {
       id: 'todays-experiment',
-      title: "Today's experiment",
+      title: t('ins.todaysExperiment'),
       variant: 'highlight',
       leftAdornment: <Lightbulb size={14} color="#D6791F" />,
       content: <TodaysExperiment meals={allMeals} />,
     },
     {
       id: 'last-12-weeks',
-      title: 'Last 12 weeks',
+      title: t('ins.last12'),
       content: (
         <>
-          <Text className="text-ink-soft text-xs mb-3">
-            Each square is a day, coloured by how on-path you were. Tap a day to open its recap.
-          </Text>
+          <Text className="text-ink-soft text-xs mb-3">{t('ins.last12Hint')}</Text>
           <CalendarHeatmap meals={allMeals} />
         </>
       ),
     },
     {
       id: 'on-path',
-      title: 'On-path towards my goal',
+      title: t('ins.onPathGoal'),
       content: (
         <>
           <Text className="text-ink text-3xl font-bold mb-3">
-            {Math.round(insights.onPathPct)}%
+            {d(Math.round(insights.onPathPct))}%
           </Text>
           <ProgressBar pct={insights.onPathPct} />
         </>
@@ -86,16 +86,15 @@ export default function InsightsScreen(): JSX.Element {
     },
     {
       id: 'week-vs-week',
-      title: 'This week vs last week',
+      title: t('ins.weekVsWeek'),
       content: <WeekDelta meals={allMeals} />,
     },
     {
       id: 'where',
-      title: 'Where you eat',
+      title: t('ins.where'),
       content: (
         <SplitBarCard
-          title="Where you eat"
-          emptyHint="Tell Capture where you ate and your places will show here."
+          emptyHint={t('ins.where')}
           extract={(m) => m.whereEat}
           meals={allMeals}
         />
@@ -103,11 +102,10 @@ export default function InsightsScreen(): JSX.Element {
     },
     {
       id: 'who',
-      title: 'Who you eat with',
+      title: t('ins.who'),
       content: (
         <SplitBarCard
-          title="Who you eat with"
-          emptyHint="Pick who you were with on Capture to see your meal company patterns."
+          emptyHint={t('ins.who')}
           extract={(m) => m.ateWith}
           meals={allMeals}
         />
@@ -115,7 +113,7 @@ export default function InsightsScreen(): JSX.Element {
     },
     {
       id: 'mood-source',
-      title: 'How meals make you feel',
+      title: t('ins.moodSource'),
       content: <MoodBySourceCard meals={allMeals} />,
     },
   ];
@@ -123,7 +121,7 @@ export default function InsightsScreen(): JSX.Element {
   if (insights.whyEatSlices.length > 0) {
     cards.push({
       id: 'why',
-      title: 'Why did I eat?',
+      title: t('ins.why'),
       content: (
         <View className="flex-row items-center">
           <View className="flex-1">
@@ -149,7 +147,7 @@ export default function InsightsScreen(): JSX.Element {
   if (insights.feelingSlices.length > 0) {
     cards.push({
       id: 'feeling',
-      title: 'How am I feeling?',
+      title: t('ins.feeling'),
       content: (
         <View className="flex-row items-center">
           <View className="flex-1">
@@ -185,17 +183,19 @@ export default function InsightsScreen(): JSX.Element {
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View className="items-center pt-8 pb-4 px-6">
-          <Text className="text-ink-mute text-xs uppercase tracking-widest">My lifestyle goal</Text>
-          <Text className="text-ink text-xl font-bold mt-1 text-center">{goal}</Text>
+          <Text className="text-ink-mute text-xs uppercase tracking-widest">
+            {t('ins.myGoal')}
+          </Text>
+          <Text className="text-ink text-xl font-bold mt-1 text-center">{tv('focus', goal)}</Text>
           <Pressable
             onPress={() => router.push('/settings')}
             className="mt-4 px-6 py-2 rounded-full border border-bubble-active flex-row items-center justify-center"
             style={{ width: 240 }}
             accessibilityRole="button"
-            accessibilityLabel="Try an experiment — choose a focus"
+            accessibilityLabel={t('ins.tryExperiment')}
           >
             <Text className="text-bubble-active font-bold text-sm tracking-widest">
-              TRY AN EXPERIMENT
+              {t('ins.tryExperiment')}
             </Text>
           </Pressable>
           <Pressable
@@ -203,10 +203,12 @@ export default function InsightsScreen(): JSX.Element {
             className="mt-3 px-6 py-2 rounded-full bg-bubble-active flex-row items-center justify-center"
             style={{ width: 240 }}
             accessibilityRole="button"
-            accessibilityLabel="Open weekly recap"
+            accessibilityLabel={t('ins.weeklyRecap')}
           >
             <CalendarDays size={16} color="#FFFFFF" />
-            <Text className="text-white font-bold text-sm tracking-widest ml-2">WEEKLY RECAP</Text>
+            <Text className="text-white font-bold text-sm tracking-widest ml-2">
+              {t('ins.weeklyRecap')}
+            </Text>
           </Pressable>
         </View>
 
@@ -225,9 +227,7 @@ export default function InsightsScreen(): JSX.Element {
 
           {insights.weekMealCount === 0 ? (
             <View className="items-center py-12">
-              <Text className="text-ink-soft text-center px-8">
-                Log a few meals from the Capture tab to see your patterns here.
-              </Text>
+              <Text className="text-ink-soft text-center px-8">{t('ins.emptyPatterns')}</Text>
             </View>
           ) : null}
         </View>

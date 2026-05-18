@@ -1,34 +1,23 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { Camera, X } from 'lucide-react-native';
+import { Camera, Check, X } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/common/Avatar';
 import { BadgeStrip } from '@/components/profile/BadgeStrip';
+import { useI18n } from '@/i18n';
 import { useMeals } from '@/hooks/useMeals';
 import { useGoal } from '@/hooks/useProfile';
 import { getAllBadges } from '@/lib/badges';
+import { toJalali } from '@/lib/jalali';
+import { useLanguageStore } from '@/stores/languageStore';
 import { type ProfileData, useProfileStore } from '@/stores/profileStore';
 
-function formatJoinedDate(iso: string): string {
-  const d = new Date(iso);
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
+const MONTHS_EN = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
 
 function normalizeHandle(raw: string): string {
   return raw
@@ -39,6 +28,8 @@ function normalizeHandle(raw: string): string {
 }
 
 export default function ProfileScreen(): JSX.Element {
+  const { t, d, lang } = useI18n();
+  const setLang = useLanguageStore((s) => s.setLang);
   const profile = useProfileStore();
   const update = useProfileStore((s) => s.update);
   const { data: meals } = useMeals();
@@ -79,8 +70,8 @@ export default function ProfileScreen(): JSX.Element {
     const pct = total === 0 ? 0 : Math.round((onPath / total) * 100);
     const uniqueDays = new Set(
       meals.map((m) => {
-        const d = new Date(m.eatenAt);
-        return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        const dt = new Date(m.eatenAt);
+        return `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
       }),
     ).size;
     return { total, pct, uniqueDays };
@@ -89,14 +80,26 @@ export default function ProfileScreen(): JSX.Element {
   const { goal } = useGoal();
   const badges = useMemo(
     () =>
-      getAllBadges({
-        meals,
-        goal,
-        preferredName: profile.preferredName,
-        handle: profile.handle,
-      }),
-    [meals, goal, profile.preferredName, profile.handle],
+      getAllBadges(
+        {
+          meals,
+          goal,
+          preferredName: profile.preferredName,
+          handle: profile.handle,
+        },
+        lang,
+      ),
+    [meals, goal, profile.preferredName, profile.handle, lang],
   );
+
+  const formatJoined = (iso: string): string => {
+    const dt = new Date(iso);
+    if (lang === 'fa') {
+      const j = toJalali(dt);
+      return `${j.jd} ${j.monthName} ${j.jy}`;
+    }
+    return `${MONTHS_EN[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`;
+  };
 
   const pickAvatar = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -113,10 +116,7 @@ export default function ProfileScreen(): JSX.Element {
   const removeAvatar = () => setForm((s) => ({ ...s, avatarUri: null }));
 
   const onSave = () => {
-    update({
-      ...form,
-      handle: form.handle ? normalizeHandle(form.handle) : '',
-    });
+    update({ ...form, handle: form.handle ? normalizeHandle(form.handle) : '' });
     router.back();
   };
 
@@ -134,31 +134,30 @@ export default function ProfileScreen(): JSX.Element {
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center"
-          accessibilityLabel="Close"
+          accessibilityLabel={t('common.close')}
         >
           <X size={22} color="#0F172A" />
         </Pressable>
-        <Text className="text-lg font-bold text-ink">Profile</Text>
+        <Text className="text-lg font-bold text-ink">{t('profile.title')}</Text>
         <Pressable
           onPress={onSave}
           disabled={!dirty}
           className="px-3 py-1"
           accessibilityRole="button"
-          accessibilityLabel="Save profile"
+          accessibilityLabel={t('profile.save')}
         >
           <Text className={`font-bold ${dirty ? 'text-bubble-active' : 'text-ink-mute'}`}>
-            Save
+            {t('profile.save')}
           </Text>
         </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* Avatar + name preview */}
         <View className="items-center py-6 bg-path-soft">
           <Pressable
             onPress={pickAvatar}
             accessibilityRole="button"
-            accessibilityLabel="Change profile picture"
+            accessibilityLabel={t('profile.title')}
             style={{
               width: 104,
               height: 104,
@@ -196,59 +195,91 @@ export default function ProfileScreen(): JSX.Element {
           </Pressable>
           {form.avatarUri ? (
             <Pressable onPress={removeAvatar} className="mt-2">
-              <Text className="text-ink-soft text-xs">Remove photo</Text>
+              <Text className="text-ink-soft text-xs">{t('profile.removePhoto')}</Text>
             </Pressable>
           ) : null}
           <Text className="text-ink text-xl font-bold mt-3">
-            {form.preferredName || 'Your name'}
+            {form.preferredName || t('profile.yourName')}
           </Text>
           {form.handle ? (
             <Text className="text-ink-mute text-sm">@{normalizeHandle(form.handle)}</Text>
           ) : null}
         </View>
 
-        {/* Stats */}
+        {/* Language switch */}
+        <View className="px-5 py-4 border-b border-slate-100">
+          <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
+            {t('profile.language')}
+          </Text>
+          <View className="flex-row" style={{ gap: 8 }}>
+            {(['en', 'fa'] as const).map((code) => {
+              const active = lang === code;
+              return (
+                <Pressable
+                  key={code}
+                  onPress={() => setLang(code)}
+                  className={`flex-1 flex-row items-center justify-center rounded-full py-3 ${
+                    active ? 'bg-bubble-active' : 'bg-bg-card'
+                  }`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  accessibilityLabel={code === 'en' ? 'English' : 'فارسی'}
+                >
+                  {active ? (
+                    <Check size={16} color="#FFFFFF" style={{ marginHorizontal: 4 }} />
+                  ) : null}
+                  <Text
+                    className={`font-bold ${active ? 'text-white' : 'text-ink'}`}
+                  >
+                    {code === 'en' ? 'English' : 'فارسی'}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
         <View className="flex-row justify-around py-5 border-b border-slate-100">
           <View className="items-center">
-            <Text className="text-ink text-2xl font-extrabold">{stats.total}</Text>
-            <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1">MEALS</Text>
-          </View>
-          <View className="items-center">
-            <Text className="text-ink text-2xl font-extrabold">{stats.pct}%</Text>
+            <Text className="text-ink text-2xl font-extrabold">{d(stats.total)}</Text>
             <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1">
-              ON-PATH
+              {t('profile.meals')}
             </Text>
           </View>
           <View className="items-center">
-            <Text className="text-ink text-2xl font-extrabold">{stats.uniqueDays}</Text>
+            <Text className="text-ink text-2xl font-extrabold">{d(stats.pct)}%</Text>
             <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1">
-              DAYS LOGGED
+              {t('profile.onPath')}
+            </Text>
+          </View>
+          <View className="items-center">
+            <Text className="text-ink text-2xl font-extrabold">{d(stats.uniqueDays)}</Text>
+            <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1">
+              {t('profile.daysLogged')}
             </Text>
           </View>
         </View>
 
-        {/* Badges strip — tap to open the full list */}
         <BadgeStrip badges={badges} />
 
-        {/* Editable fields */}
         <View className="px-5 pt-6">
-          <Field label="Preferred name">
+          <Field label={t('profile.fld.name')}>
             <TextInput
               value={form.preferredName}
               onChangeText={(v) => setForm((s) => ({ ...s, preferredName: v }))}
-              placeholder="e.g. Ross"
+              placeholder={t('profile.fld.namePh')}
               placeholderTextColor="#94A3B8"
               className="text-ink text-base py-2"
             />
           </Field>
 
-          <Field label="Handle">
+          <Field label={t('profile.fld.handle')}>
             <View className="flex-row items-center">
               <Text className="text-ink-mute text-base mr-1">@</Text>
               <TextInput
                 value={form.handle}
                 onChangeText={(v) => setForm((s) => ({ ...s, handle: v }))}
-                placeholder="username"
+                placeholder={t('profile.fld.handlePh')}
                 placeholderTextColor="#94A3B8"
                 autoCapitalize="none"
                 className="flex-1 text-ink text-base py-2"
@@ -256,7 +287,7 @@ export default function ProfileScreen(): JSX.Element {
             </View>
           </Field>
 
-          <Field label="Phone number">
+          <Field label={t('profile.fld.phone')}>
             <TextInput
               value={form.phoneNumber}
               onChangeText={(v) => setForm((s) => ({ ...s, phoneNumber: v }))}
@@ -267,7 +298,7 @@ export default function ProfileScreen(): JSX.Element {
             />
           </Field>
 
-          <Field label="Email">
+          <Field label={t('profile.fld.email')}>
             <TextInput
               value={form.email}
               onChangeText={(v) => setForm((s) => ({ ...s, email: v }))}
@@ -279,11 +310,11 @@ export default function ProfileScreen(): JSX.Element {
             />
           </Field>
 
-          <Field label="Short bio">
+          <Field label={t('profile.fld.bio')}>
             <TextInput
               value={form.bio}
               onChangeText={(v) => setForm((s) => ({ ...s, bio: v }))}
-              placeholder="One line about what you're working on"
+              placeholder={t('profile.fld.bioPh')}
               placeholderTextColor="#94A3B8"
               multiline
               className="text-ink text-base py-2"
@@ -291,8 +322,10 @@ export default function ProfileScreen(): JSX.Element {
           </Field>
 
           <View className="mt-4 mb-2">
-            <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">Joined</Text>
-            <Text className="text-ink text-base">{formatJoinedDate(form.joinedAt)}</Text>
+            <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">
+              {t('profile.joined')}
+            </Text>
+            <Text className="text-ink text-base">{formatJoined(form.joinedAt)}</Text>
           </View>
         </View>
       </ScrollView>

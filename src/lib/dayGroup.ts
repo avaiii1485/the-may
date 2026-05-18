@@ -1,5 +1,10 @@
+import { toJalali } from './jalali';
 import { startOfDay } from './time';
+import type { Lang } from '@/stores/languageStore';
 import type { Meal } from '@/types/meal';
+
+const WEEKDAYS_FA = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'] as const;
+
 
 export interface DayGroup {
   date: Date;
@@ -29,9 +34,15 @@ export function groupMealsByDay(meals: Meal[]): DayGroup[] {
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
 
-export function dayLabel(date: Date, today: Date): string {
+export function dayLabel(date: Date, today: Date, lang: Lang = 'en'): string {
   const diffMs = today.getTime() - date.getTime();
   const diffDays = Math.round(diffMs / (24 * 60 * 60 * 1000));
+  if (lang === 'fa') {
+    if (diffDays === 0) return 'امروز';
+    if (diffDays === 1) return 'دیروز';
+    const j = toJalali(date);
+    return `${WEEKDAYS_FA[date.getDay()] ?? ''} - ${j.jd} ${j.monthName}`;
+  }
   if (diffDays === 0) return 'Today';
   if (diffDays === 1) return 'Yesterday';
   return `${WEEKDAYS[date.getDay()] ?? ''} - ${MONTHS[date.getMonth()] ?? ''} ${date.getDate()}`;
@@ -66,7 +77,16 @@ export function withEmptyDays(ascending: DayGroup[]): TimelineEntry[] {
   return result;
 }
 
-export function formatFrequency(meals: Meal[]): string | null {
+function dur(hours: number, mins: number, lang: Lang): string {
+  if (lang === 'fa') {
+    if (hours === 0) return `${mins} دقیقه`;
+    return `${hours} ساعت ${mins} دقیقه`;
+  }
+  if (hours === 0) return `${mins}m`;
+  return `${hours}h ${mins}m`;
+}
+
+export function formatFrequency(meals: Meal[], lang: Lang = 'en'): string | null {
   if (meals.length < 2) return null;
   const sorted = [...meals].sort(
     (a, b) => new Date(a.eatenAt).getTime() - new Date(b.eatenAt).getTime(),
@@ -79,12 +99,15 @@ export function formatFrequency(meals: Meal[]): string | null {
   const minutes = Math.max(0, Math.round(avgMs / 60000));
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  if (hours === 0) return `${mins}m`;
-  return `${hours}h ${mins}m`;
+  return dur(hours, mins, lang);
 }
 
 // Fasting = gap between the prior day's last meal and the current day's first meal.
-export function computeFasting(currentDayMeals: Meal[], allMeals: Meal[]): string | null {
+export function computeFasting(
+  currentDayMeals: Meal[],
+  allMeals: Meal[],
+  lang: Lang = 'en',
+): string | null {
   const sortedToday = [...currentDayMeals].sort(
     (a, b) => new Date(a.eatenAt).getTime() - new Date(b.eatenAt).getTime(),
   );
@@ -104,8 +127,7 @@ export function computeFasting(currentDayMeals: Meal[], allMeals: Meal[]): strin
   const diffMin = Math.round((firstTodayMs - latestBeforeMs) / 60000);
   const h = Math.floor(diffMin / 60);
   const m = diffMin % 60;
-  if (h === 0) return `${m}m`;
-  return `${h}h ${m}m`;
+  return dur(h, m, lang);
 }
 
 // "2 August" / "Sunday" parts for the recap header.
@@ -117,7 +139,17 @@ const FULL_WEEKDAYS = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
 ] as const;
 
-export function dayHeaderParts(date: Date): { dayMonth: string; weekday: string; full: string } {
+export function dayHeaderParts(
+  date: Date,
+  lang: Lang = 'en',
+): { dayMonth: string; weekday: string; full: string } {
+  if (lang === 'fa') {
+    const j = toJalali(date);
+    const dayMonthFa = `${j.jd} ${j.monthName}`;
+    const weekdayFa = WEEKDAYS_FA[date.getDay()] ?? '';
+    const fullFa = `${weekdayFa} · ${j.jd} ${j.monthName} ${j.jy}`;
+    return { dayMonth: dayMonthFa, weekday: weekdayFa, full: fullFa };
+  }
   const dayMonth = `${date.getDate()} ${FULL_MONTHS[date.getMonth()] ?? ''}`;
   const weekday = FULL_WEEKDAYS[date.getDay()] ?? '';
   const monthShort = MONTHS[date.getMonth()] ?? '';

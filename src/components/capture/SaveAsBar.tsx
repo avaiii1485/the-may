@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 import { OffPathArrow, OnPathArrow } from '@/components/icons/OnPathArrow';
+import { useI18n } from '@/i18n';
 
 interface Props {
   onSaveOnPath: () => void;
@@ -8,9 +9,10 @@ interface Props {
 }
 
 export function SaveAsBar({ onSaveOnPath, onSaveOffPath, disabled }: Props): JSX.Element {
+  const { t } = useI18n();
   return (
     <View className="border-t border-slate-200 bg-white px-6 pt-4 pb-6">
-      <Text className="text-center text-ink-soft mb-3">Save meal as...</Text>
+      <Text className="text-center text-ink-soft mb-3">{t('capture.saveAs')}</Text>
       <View className="flex-row justify-around items-center">
         <View className="items-center">
           <Pressable
@@ -23,7 +25,7 @@ export function SaveAsBar({ onSaveOnPath, onSaveOffPath, disabled }: Props): JSX
           >
             <OffPathArrow color="#FFFFFF" />
           </Pressable>
-          <Text className="text-ink mt-2 text-sm">Off-path</Text>
+          <Text className="text-ink mt-2 text-sm">{t('path.offPath')}</Text>
         </View>
         <View className="items-center">
           <Pressable
@@ -36,7 +38,7 @@ export function SaveAsBar({ onSaveOnPath, onSaveOffPath, disabled }: Props): JSX
           >
             <OnPathArrow color="#FFFFFF" />
           </Pressable>
-          <Text className="text-ink mt-2 text-sm">On-path</Text>
+          <Text className="text-ink mt-2 text-sm">{t('path.onPath')}</Text>
         </View>
       </View>
     </View>

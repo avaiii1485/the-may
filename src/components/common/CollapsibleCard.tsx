@@ -2,6 +2,7 @@ import { useFocusEffect } from 'expo-router';
 import { ChevronDown, ChevronUp, MoreVertical, Pin, PinOff } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { useI18n } from '@/i18n';
 import { usePinnedInsightsStore } from '@/stores/pinnedInsightsStore';
 
 interface Props {
@@ -25,6 +26,7 @@ export function CollapsibleCard({
   leftAdornment,
   defaultOpen = false,
 }: Props): JSX.Element {
+  const { t } = useI18n();
   const pinned = usePinnedInsightsStore((s) => s.pinned.includes(id));
   const togglePin = usePinnedInsightsStore((s) => s.toggle);
 
@@ -107,7 +109,7 @@ export function CollapsibleCard({
             }}
             className="flex-row items-center px-4 py-3 bg-white"
             accessibilityRole="button"
-            accessibilityLabel={pinned ? 'Unpin this insight' : 'Pin this insight'}
+            accessibilityLabel={pinned ? t('ins.unpin') : t('ins.pin')}
           >
             {pinned ? (
               <PinOff size={16} color="#0F172A" />
@@ -115,7 +117,7 @@ export function CollapsibleCard({
               <Pin size={16} color="#0F172A" />
             )}
             <Text className="text-ink font-semibold ml-3">
-              {pinned ? 'Unpin this insight' : 'Pin this insight'}
+              {pinned ? t('ins.unpin') : t('ins.pin')}
             </Text>
           </Pressable>
         </View>

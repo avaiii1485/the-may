@@ -47,22 +47,20 @@ export function useInsights(): InsightsData {
     });
     const highlightIndex = (today.getDay() + 6) % 7;
 
-    const weekMeals = meals.filter((m) =>
-      weekDays.some((d) => isSameLocalDay(m.eatenAt, d.date)),
-    );
+    // Insights below summarize the user's WHOLE history, not just this week.
     const onPathPct =
-      weekMeals.length === 0
+      meals.length === 0
         ? 0
-        : (weekMeals.filter((m) => m.onPath).length / weekMeals.length) * 100;
+        : (meals.filter((m) => m.onPath).length / meals.length) * 100;
 
-    const whyEatTop = topCounts(weekMeals.map((m) => m.whyEat));
+    const whyEatTop = topCounts(meals.map((m) => m.whyEat));
     const whyEatSlices: DonutSlice[] = whyEatTop.map((x, i) => ({
       ...x,
       color: PALETTE[i % PALETTE.length] as string,
     }));
 
     const feelingCounts = new Map<number, number>();
-    for (const m of weekMeals) {
+    for (const m of meals) {
       if (m.feeling !== null) {
         feelingCounts.set(m.feeling, (feelingCounts.get(m.feeling) ?? 0) + 1);
       }
@@ -82,7 +80,7 @@ export function useInsights(): InsightsData {
       onPathPct,
       whyEatSlices,
       feelingSlices,
-      weekMealCount: weekMeals.length,
+      weekMealCount: meals.length,
     };
   }, [meals]);
 }

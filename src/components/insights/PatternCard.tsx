@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { useI18n } from '@/i18n';
 import { detectInsights } from '@/lib/patternDetector';
 import type { Meal } from '@/types/meal';
 
@@ -11,15 +12,15 @@ interface Props {
 const VISIBLE_COUNT = 5;
 
 export function PatternCard({ meals }: Props): JSX.Element {
-  const insights = useMemo(() => detectInsights(meals).slice(0, VISIBLE_COUNT), [meals]);
+  const { t, lang } = useI18n();
+  const insights = useMemo(
+    () => detectInsights(meals, lang).slice(0, VISIBLE_COUNT),
+    [meals, lang],
+  );
   const [idx, setIdx] = useState(0);
 
   if (insights.length === 0) {
-    return (
-      <Text className="text-ink-soft text-sm">
-        Log a handful more meals (with reflections) and patterns will start showing up here.
-      </Text>
-    );
+    return <Text className="text-ink-soft text-sm">{t('exp.empty')}</Text>;
   }
 
   const current = insights[idx % insights.length]!;
@@ -64,9 +65,9 @@ export function PatternCard({ meals }: Props): JSX.Element {
             onPress={() => setIdx((i) => (i + 1) % insights.length)}
             className="flex-row items-center"
             accessibilityRole="button"
-            accessibilityLabel="Next insight"
+            accessibilityLabel={t('exp.next')}
           >
-            <Text className="text-bubble-active font-semibold text-sm mr-1">Next</Text>
+            <Text className="text-bubble-active font-semibold text-sm mr-1">{t('exp.next')}</Text>
             <ChevronRight size={16} color="#1FB6E5" />
           </Pressable>
         </View>

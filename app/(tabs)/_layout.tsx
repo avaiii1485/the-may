@@ -2,8 +2,10 @@ import { Tabs } from 'expo-router';
 import { Lightbulb, Plus } from 'lucide-react-native';
 import { View } from 'react-native';
 import { PathSquiggle } from '@/components/icons/PathSquiggle';
+import { useI18n } from '@/i18n';
 
 export default function TabsLayout(): JSX.Element {
+  const { t } = useI18n();
   return (
     <Tabs
       screenOptions={{
@@ -26,7 +28,7 @@ export default function TabsLayout(): JSX.Element {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Path',
+          title: t('tab.path'),
           tabBarIcon: ({ color, focused }) => (
             <View>
               <PathSquiggle size={26} color={color} strokeWidth={focused ? 2.4 : 2} />
@@ -37,7 +39,7 @@ export default function TabsLayout(): JSX.Element {
       <Tabs.Screen
         name="insights"
         options={{
-          title: 'Insights',
+          title: t('tab.insights'),
           tabBarIcon: ({ color, focused }) => (
             <Lightbulb size={26} color={color} strokeWidth={focused ? 2.4 : 2} />
           ),
@@ -46,7 +48,7 @@ export default function TabsLayout(): JSX.Element {
       <Tabs.Screen
         name="capture"
         options={{
-          title: 'Capture',
+          title: t('tab.capture'),
           tabBarIcon: ({ color }) => <Plus size={28} color={color} strokeWidth={2.4} />,
         }}
       />

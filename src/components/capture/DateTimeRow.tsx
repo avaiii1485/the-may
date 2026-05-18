@@ -1,4 +1,5 @@
 import { TextInput, View, Text } from 'react-native';
+import { useI18n } from '@/i18n';
 
 interface Props {
   value: string; // ISO datetime
@@ -20,11 +21,12 @@ function partsToIso(date: string, time: string): string {
 }
 
 export function DateTimeRow({ value, onChange }: Props): JSX.Element {
+  const { t } = useI18n();
   const { date, time } = isoToParts(value);
   return (
     <View className="flex-row gap-3">
       <View className="flex-1">
-        <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">Date</Text>
+        <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">{t('datetime.date')}</Text>
         <TextInput
           value={date}
           onChangeText={(d) => onChange(partsToIso(d, time))}
@@ -33,10 +35,10 @@ export function DateTimeRow({ value, onChange }: Props): JSX.Element {
         />
       </View>
       <View className="flex-1">
-        <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">Time</Text>
+        <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">{t('datetime.time')}</Text>
         <TextInput
           value={time}
-          onChangeText={(t) => onChange(partsToIso(date, t))}
+          onChangeText={(tm) => onChange(partsToIso(date, tm))}
           placeholder="HH:MM"
           className="border-b border-slate-200 pb-2 text-ink"
         />

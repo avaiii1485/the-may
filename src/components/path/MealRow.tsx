@@ -9,6 +9,7 @@ import {
   ORANGE,
   TIME_COL_WIDTH,
 } from './pathConstants';
+import { useI18n } from '@/i18n';
 import { formatTimeOfDay, gapBetween } from '@/lib/time';
 import type { Meal } from '@/types/meal';
 
@@ -22,13 +23,14 @@ const ROW_HEIGHT = CARD_SIZE + 28;
 const DOT_SIZE = 10;
 
 export function MealRow({ meal, prevEatenAt, onPress }: Props): JSX.Element {
+  const { d } = useI18n();
   const xPct = meal.onPath ? CENTER_X_PCT : OFF_PATH_X_PCT;
-  const time = formatTimeOfDay(meal.eatenAt);
-  const gap = prevEatenAt ? gapBetween(prevEatenAt, meal.eatenAt) : null;
+  const time = d(formatTimeOfDay(meal.eatenAt));
+  const gap = prevEatenAt ? d(gapBetween(prevEatenAt, meal.eatenAt)) : null;
   const isTextOnly = !meal.photoUrl && !!meal.textContent;
 
   return (
-    <View style={{ flexDirection: 'row' }}>
+    <View style={{ flexDirection: 'row', direction: 'ltr' }}>
       <View style={{ width: LEFT_SPACER }} />
       <View style={{ flex: 1, position: 'relative', height: ROW_HEIGHT }}>
         {/* Gray ghost line — always centered, drawn behind everything */}

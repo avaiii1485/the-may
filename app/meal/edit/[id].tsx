@@ -10,6 +10,7 @@ import {
   SingleSelectSection,
 } from '@/components/capture/ReflectionSection';
 import { OffPathArrow, OnPathArrow } from '@/components/icons/OnPathArrow';
+import { useI18n } from '@/i18n';
 import { useMeal, useUpdateMeal } from '@/hooks/useMeals';
 import { QUESTIONS, type DraftMeal, type FeelingLevel, type Meal } from '@/types/meal';
 
@@ -42,6 +43,7 @@ function fromMeal(m: Meal): FormState {
 }
 
 export default function MealEditScreen(): JSX.Element {
+  const { t } = useI18n();
   const params = useLocalSearchParams<{ id: string }>();
   const id =
     typeof params.id === 'string'
@@ -101,7 +103,7 @@ export default function MealEditScreen(): JSX.Element {
   if (isLoading || !form || !meal) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <Text className="text-ink-soft">Loading…</Text>
+        <Text className="text-ink-soft">{t('common.loading')}</Text>
       </SafeAreaView>
     );
   }
@@ -116,14 +118,14 @@ export default function MealEditScreen(): JSX.Element {
         >
           <X size={24} color="#0F172A" />
         </Pressable>
-        <Text className="text-lg font-bold text-ink">Edit meal</Text>
+        <Text className="text-lg font-bold text-ink">{t('meal.editTitle')}</Text>
         <Pressable
           onPress={onSave}
           disabled={isPending}
           className={`px-4 py-2 rounded-full ${isPending ? 'bg-ink-mute' : 'bg-bubble-active'}`}
           accessibilityLabel="Save changes"
         >
-          <Text className="text-white font-bold">Save</Text>
+          <Text className="text-white font-bold">{t('meal.save')}</Text>
         </Pressable>
       </View>
 
@@ -153,12 +155,12 @@ export default function MealEditScreen(): JSX.Element {
           </View>
         ) : (
           <View className="w-full aspect-square rounded-2xl bg-bg-card mb-4 items-center justify-center">
-            <Text className="text-ink-mute">Text-only meal</Text>
+            <Text className="text-ink-mute">{t('capture.noPhoto')}</Text>
           </View>
         )}
 
         <View className="bg-bg-card rounded-2xl p-4 mb-3">
-          <Text className="text-base font-semibold text-ink mb-3">Save as</Text>
+          <Text className="text-base font-semibold text-ink mb-3">{t('meal.saveAs')}</Text>
           <View className="flex-row justify-around">
             <Pressable
               onPress={() => set('onPath', false)}
@@ -173,7 +175,7 @@ export default function MealEditScreen(): JSX.Element {
               >
                 <OffPathArrow color="#FFFFFF" />
               </View>
-              <Text className="text-ink mt-1 text-sm">Off-path</Text>
+              <Text className="text-ink mt-1 text-sm">{t('path.offPath')}</Text>
             </Pressable>
             <Pressable
               onPress={() => set('onPath', true)}
@@ -188,18 +190,18 @@ export default function MealEditScreen(): JSX.Element {
               >
                 <OnPathArrow color="#FFFFFF" />
               </View>
-              <Text className="text-ink mt-1 text-sm">On-path</Text>
+              <Text className="text-ink mt-1 text-sm">{t('path.onPath')}</Text>
             </Pressable>
           </View>
         </View>
 
         <View className="mb-3">
-          <Text className="text-base font-bold text-ink mb-1">Note</Text>
+          <Text className="text-base font-bold text-ink mb-1">{t('capture.note')}</Text>
           <View className="flex-row items-center border-b border-slate-200 pb-2">
             <TextInput
               value={form.note}
               onChangeText={(v) => set('note', v)}
-              placeholder="Add notes"
+              placeholder={t('capture.addNotes')}
               placeholderTextColor="#94A3B8"
               className="flex-1 text-ink"
               multiline
@@ -211,13 +213,13 @@ export default function MealEditScreen(): JSX.Element {
         {/* Adjust the meal time — saving will move the meal in the timeline. */}
         <View className="bg-bg-card rounded-2xl p-4 mb-3">
           <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
-            When did you eat?
+            {t('capture.whenAteTitle')}
           </Text>
           <DateTimeRow value={form.eatenAt} onChange={(iso) => set('eatenAt', iso)} />
         </View>
 
         <MultiSelectSection
-          label={QUESTIONS.whyEat.label}
+          label={t('q.whyEat')}
           options={QUESTIONS.whyEat.options}
           selected={form.whyEat}
           onToggle={(v) => toggleMulti('whyEat', v)}
@@ -226,35 +228,35 @@ export default function MealEditScreen(): JSX.Element {
         <FeelingRow selected={form.feeling} onSelect={(f) => set('feeling', f)} />
 
         <MultiSelectSection
-          label={QUESTIONS.ateWith.label}
+          label={t('q.ateWith')}
           options={QUESTIONS.ateWith.options}
           selected={form.ateWith}
           onToggle={(v) => toggleMulti('ateWith', v)}
         />
 
         <SingleSelectSection<NonNullable<DraftMeal['howWasIt']>>
-          label={QUESTIONS.howWasIt.label}
+          label={t('q.howWasIt')}
           options={QUESTIONS.howWasIt.options}
           selected={form.howWasIt}
           onSelect={(v) => set('howWasIt', v)}
         />
 
         <MultiSelectSection
-          label={QUESTIONS.whereEat.label}
+          label={t('q.whereEat')}
           options={QUESTIONS.whereEat.options}
           selected={form.whereEat}
           onToggle={(v) => toggleMulti('whereEat', v)}
         />
 
         <SingleSelectSection<NonNullable<DraftMeal['howMade']>>
-          label={QUESTIONS.howMade.label}
+          label={t('q.howMade')}
           options={QUESTIONS.howMade.options}
           selected={form.howMade}
           onSelect={(v) => set('howMade', v)}
         />
 
         <MultiSelectSection
-          label={QUESTIONS.madeMeFeel.label}
+          label={t('q.madeMeFeel')}
           options={QUESTIONS.madeMeFeel.options}
           selected={form.madeMeFeel}
           onToggle={(v) => toggleMulti('madeMeFeel', v)}

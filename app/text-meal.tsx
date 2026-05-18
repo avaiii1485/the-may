@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DateTimeRow } from '@/components/capture/DateTimeRow';
+import { useI18n } from '@/i18n';
 import { useCaptureDraftStore } from '@/stores/captureDraftStore';
 
 function nowIso(): string {
@@ -13,6 +14,7 @@ function nowIso(): string {
 }
 
 export default function TextMealScreen(): JSX.Element {
+  const { t } = useI18n();
   const setTextContent = useCaptureDraftStore((s) => s.setTextContent);
   const setEatenAt = useCaptureDraftStore((s) => s.setEatenAt);
   const setPhotoUri = useCaptureDraftStore((s) => s.setPhotoUri);
@@ -46,7 +48,7 @@ export default function TextMealScreen(): JSX.Element {
         >
           <ChevronLeft size={24} color="#0F172A" />
         </Pressable>
-        <Text className="text-lg font-bold text-ink">Add a text-only meal</Text>
+        <Text className="text-lg font-bold text-ink">{t('text.title')}</Text>
         <Pressable
           onPress={onDone}
           disabled={!canSubmit}
@@ -56,7 +58,7 @@ export default function TextMealScreen(): JSX.Element {
           <Text
             className={`font-bold ${canSubmit ? 'text-bubble-active' : 'text-ink-mute'}`}
           >
-            Done
+            {t('text.done')}
           </Text>
         </Pressable>
       </View>
@@ -64,17 +66,17 @@ export default function TextMealScreen(): JSX.Element {
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         <View className="bg-bg-card rounded-2xl p-4 mb-5">
           <Text className="text-xs uppercase tracking-widest text-ink-mute mb-3">
-            When did you eat?
+            {t('capture.whenAteTitle')}
           </Text>
           <DateTimeRow value={iso} onChange={setIso} />
         </View>
 
-        <Text className="text-base font-bold text-ink mb-2">Describe your meal</Text>
+        <Text className="text-base font-bold text-ink mb-2">{t('text.describe')}</Text>
         <View className="flex-row items-center border-b border-slate-200 pb-2">
           <TextInput
             value={text}
             onChangeText={setText}
-            placeholder="e.g. Oatmeal with banana"
+            placeholder={t('text.placeholder')}
             placeholderTextColor="#94A3B8"
             className="flex-1 text-ink text-2xl font-bold"
             autoFocus
@@ -83,7 +85,7 @@ export default function TextMealScreen(): JSX.Element {
           <Pencil size={18} color="#94A3B8" />
         </View>
         <Text className="text-ink-mute text-xs mt-3">
-          On the next step you'll answer the reflection questions and save as on/off-path.
+          {t('text.hint')}
         </Text>
       </ScrollView>
     </SafeAreaView>

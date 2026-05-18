@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
+import { useI18n } from '@/i18n';
 import { addDays, startOfDay } from '@/lib/time';
 import type { Meal } from '@/types/meal';
 
@@ -46,6 +47,7 @@ function colorForDay(b: DayBucket): string {
 }
 
 export function CalendarHeatmap({ meals }: Props): JSX.Element {
+  const { t } = useI18n();
   const today = startOfDay(new Date());
   const dayOfWeekMonStart = (today.getDay() + 6) % 7;
   const gridStart = addDays(today, -((WEEKS - 1) * 7 + dayOfWeekMonStart));
@@ -125,7 +127,7 @@ export function CalendarHeatmap({ meals }: Props): JSX.Element {
       </View>
 
       <View className="flex-row items-center justify-end mt-3">
-        <Text className="text-[10px] text-ink-mute mr-2">Less</Text>
+        <Text className="text-[10px] text-ink-mute mr-2">{t('ins.less')}</Text>
         {[COLORS.empty, COLORS.q1, COLORS.q2, COLORS.q3, COLORS.q4].map((c, i) => (
           <View
             key={i}
@@ -138,7 +140,7 @@ export function CalendarHeatmap({ meals }: Props): JSX.Element {
             }}
           />
         ))}
-        <Text className="text-[10px] text-ink-mute ml-1">More on-path</Text>
+        <Text className="text-[10px] text-ink-mute ml-1">{t('ins.moreOnPath')}</Text>
       </View>
     </View>
   );

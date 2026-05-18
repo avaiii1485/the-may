@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Samim — declared explicitly with absolute CDN URLs so the browser fetches
+   the files at runtime (a remote @import gets stripped by the CSS build). */
+@font-face {
+  font-family: 'Samim';
+  src: url('https://cdn.jsdelivr.net/gh/rastikerdar/samim-font@v4.0.5/dist/Samim.woff2')
+      format('woff2'),
+    url('https://cdn.jsdelivr.net/gh/rastikerdar/samim-font@v4.0.5/dist/Samim.woff')
+      format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Samim';
+  src: url('https://cdn.jsdelivr.net/gh/rastikerdar/samim-font@v4.0.5/dist/Samim-Medium.woff2')
+      format('woff2'),
+    url('https://cdn.jsdelivr.net/gh/rastikerdar/samim-font@v4.0.5/dist/Samim-Medium.woff')
+      format('woff');
+  font-weight: 500 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Samim';
+  src: url('https://cdn.jsdelivr.net/gh/rastikerdar/samim-font@v4.0.5/dist/Samim-Bold.woff2')
+      format('woff2'),
+    url('https://cdn.jsdelivr.net/gh/rastikerdar/samim-font@v4.0.5/dist/Samim-Bold.woff')
+      format('woff');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* Tell react-native-css-interop to use class-based dark mode instead of
      a media query. Without this it tries to manually flip color-scheme
@@ -14,4 +47,17 @@ html, body, #root {
   margin: 0;
   padding: 0;
   background: #ffffff;
+}
+
+/* Persian: clean modern face + right-to-left. Scoped to the fa document so
+   the English side is untouched. Emojis and lucide SVG icons are unaffected. */
+html[lang='fa'],
+html[lang='fa'] body,
+html[lang='fa'] input,
+html[lang='fa'] textarea {
+  font-family: 'Samim', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+html[lang='fa'] {
+  direction: rtl;
 }

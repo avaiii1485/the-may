@@ -1,4 +1,6 @@
 import { startOfDay } from './time';
+import { tvStatic } from '@/i18n';
+import type { Lang } from '@/stores/languageStore';
 import type { Meal } from '@/types/meal';
 
 export interface WeekRange {
@@ -56,7 +58,11 @@ interface ChangeCandidate {
 
 // Surface the most striking behavioural change between two weeks
 // (e.g. "you ate at the table more this week").
-export function biggestChange(current: Meal[], previous: Meal[]): string | null {
+export function biggestChange(
+  current: Meal[],
+  previous: Meal[],
+  lang: Lang = 'en',
+): string | null {
   if (current.length === 0 && previous.length === 0) return null;
 
   const dimensions: { label: 'location' | 'company' | 'prep' | 'reason'; get: (m: Meal) => string[] }[] = [
@@ -81,22 +87,44 @@ export function biggestChange(current: Meal[], previous: Meal[]): string | null 
       if (Math.abs(delta) < 2) continue;
       const dir = delta > 0 ? 'more' : 'less';
       let text: string;
-      switch (dim.label) {
-        case 'location':
-          text = `Ate at ${lowercaseFirst(v)} ${dir} this week`;
-          break;
-        case 'company':
-          text =
-            v === 'By myself'
-              ? `Ate by yourself ${dir} this week`
-              : `Ate with ${lowercaseFirst(v)} ${dir} this week`;
-          break;
-        case 'prep':
-          text = `${dir === 'more' ? 'More' : 'Less'} ${lowercaseFirst(v)} meals this week`;
-          break;
-        case 'reason':
-          text = `Ate because of "${lowercaseFirst(v)}" ${dir} this week`;
-          break;
+      if (lang === 'fa') {
+        const vf = tvStatic('fa', 'opt', v);
+        const d = delta > 0 ? 'بیشتر' : 'کمتر';
+        switch (dim.label) {
+          case 'location':
+            text = `این هفته ${vf} ${d} غذا خوردی`;
+            break;
+          case 'company':
+            text =
+              v === 'By myself'
+                ? `این هفته ${d} تنها غذا خوردی`
+                : `این هفته ${d} با ${vf} غذا خوردی`;
+            break;
+          case 'prep':
+            text = `این هفته ${d} وعده‌ی ${vf} داشتی`;
+            break;
+          case 'reason':
+            text = `این هفته ${d} به‌خاطر «${vf}» غذا خوردی`;
+            break;
+        }
+      } else {
+        switch (dim.label) {
+          case 'location':
+            text = `Ate at ${lowercaseFirst(v)} ${dir} this week`;
+            break;
+          case 'company':
+            text =
+              v === 'By myself'
+                ? `Ate by yourself ${dir} this week`
+                : `Ate with ${lowercaseFirst(v)} ${dir} this week`;
+            break;
+          case 'prep':
+            text = `${dir === 'more' ? 'More' : 'Less'} ${lowercaseFirst(v)} meals this week`;
+            break;
+          case 'reason':
+            text = `Ate because of "${lowercaseFirst(v)}" ${dir} this week`;
+            break;
+        }
       }
       candidates.push({ text, magnitude: Math.abs(delta) });
     }
