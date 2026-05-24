@@ -12,11 +12,15 @@ export async function uploadMealPhoto(userId: string, localUri: string): Promise
     // No backend configured: keep the local URI as the photo source.
     return localUri;
   }
-  const ext = localUri.split('.').pop()?.split('?')[0] || 'jpg';
-  const path = `${userId}/${Date.now()}.${ext}`;
   const blob = await uriToBlob(localUri);
+  // Derive the extension from the blob's MIME type. Parsing it out of the URI
+  // breaks for web `data:` URIs (no real filename), which produced an invalid,
+  // enormous storage key and a failed upload.
+  const mime = blob.type || 'image/jpeg';
+  const ext = mime.split('/')[1]?.split('+')[0] || 'jpg';
+  const path = `${userId}/${Date.now()}.${ext}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
-    contentType: blob.type || 'image/jpeg',
+    contentType: mime,
     upsert: false,
   });
   if (error) throw error;

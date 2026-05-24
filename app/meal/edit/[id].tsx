@@ -3,16 +3,13 @@ import { Pencil, X } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CatalogReflection, type MultiField, type SingleField } from '@/components/capture/CatalogReflection';
 import { DateTimeRow } from '@/components/capture/DateTimeRow';
-import { FeelingRow } from '@/components/capture/FeelingRow';
-import {
-  MultiSelectSection,
-  SingleSelectSection,
-} from '@/components/capture/ReflectionSection';
 import { OffPathArrow, OnPathArrow } from '@/components/icons/OnPathArrow';
 import { useI18n } from '@/i18n';
 import { useMeal, useUpdateMeal } from '@/hooks/useMeals';
-import { QUESTIONS, type DraftMeal, type FeelingLevel, type Meal } from '@/types/meal';
+import { useQuestions } from '@/hooks/useQuestions';
+import { type FeelingLevel, type Meal } from '@/types/meal';
 
 interface FormState {
   note: string;
@@ -53,6 +50,7 @@ export default function MealEditScreen(): JSX.Element {
         : undefined;
   const { data: meal, isLoading } = useMeal(id);
   const { update, isPending } = useUpdateMeal();
+  const questions = useQuestions();
   const [form, setForm] = useState<FormState | null>(null);
 
   useEffect(() => {
@@ -66,16 +64,18 @@ export default function MealEditScreen(): JSX.Element {
     [],
   );
 
-  const toggleMulti = (
-    key: 'whyEat' | 'ateWith' | 'whereEat' | 'madeMeFeel',
-    value: string,
-  ) => {
+  const toggleMulti = (key: MultiField, value: string) => {
     setForm((s) => {
       if (!s) return s;
       const arr = s[key];
       const next = arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value];
       return { ...s, [key]: next };
     });
+  };
+
+  const setSingleSafe = (field: SingleField, value: string) => {
+    if (field === 'howWasIt') set('howWasIt', value as Meal['howWasIt']);
+    else set('howMade', value as Meal['howMade']);
   };
 
   const onSave = async () => {
@@ -218,48 +218,20 @@ export default function MealEditScreen(): JSX.Element {
           <DateTimeRow value={form.eatenAt} onChange={(iso) => set('eatenAt', iso)} />
         </View>
 
-        <MultiSelectSection
-          label={t('q.whyEat')}
-          options={QUESTIONS.whyEat.options}
-          selected={form.whyEat}
-          onToggle={(v) => toggleMulti('whyEat', v)}
-        />
-
-        <FeelingRow selected={form.feeling} onSelect={(f) => set('feeling', f)} />
-
-        <MultiSelectSection
-          label={t('q.ateWith')}
-          options={QUESTIONS.ateWith.options}
-          selected={form.ateWith}
-          onToggle={(v) => toggleMulti('ateWith', v)}
-        />
-
-        <SingleSelectSection<NonNullable<DraftMeal['howWasIt']>>
-          label={t('q.howWasIt')}
-          options={QUESTIONS.howWasIt.options}
-          selected={form.howWasIt}
-          onSelect={(v) => set('howWasIt', v)}
-        />
-
-        <MultiSelectSection
-          label={t('q.whereEat')}
-          options={QUESTIONS.whereEat.options}
-          selected={form.whereEat}
-          onToggle={(v) => toggleMulti('whereEat', v)}
-        />
-
-        <SingleSelectSection<NonNullable<DraftMeal['howMade']>>
-          label={t('q.howMade')}
-          options={QUESTIONS.howMade.options}
-          selected={form.howMade}
-          onSelect={(v) => set('howMade', v)}
-        />
-
-        <MultiSelectSection
-          label={t('q.madeMeFeel')}
-          options={QUESTIONS.madeMeFeel.options}
-          selected={form.madeMeFeel}
-          onToggle={(v) => toggleMulti('madeMeFeel', v)}
+        <CatalogReflection
+          questions={questions}
+          multiValues={{
+            whyEat: form.whyEat,
+            ateWith: form.ateWith,
+            whereEat: form.whereEat,
+            madeMeFeel: form.madeMeFeel,
+          }}
+          onToggleMulti={toggleMulti}
+          howWasIt={form.howWasIt}
+          howMade={form.howMade}
+          onSetSingle={setSingleSafe}
+          feeling={form.feeling}
+          onSetFeeling={(f) => set('feeling', f)}
         />
       </ScrollView>
     </SafeAreaView>

@@ -1,24 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as profileService from '@/services/profile';
-import { useAuthStore } from '@/stores/authStore';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { triggerSync } from '@/lib/sync';
+import { useLocalMealsStore } from '@/stores/localMealsStore';
 
-const KEY = ['profile'] as const;
-
+// Goal is local-first like meals: the local store is the source of truth, and the
+// sync engine pushes it to profiles.goal. Reads work offline.
 export function useGoal(): { goal: string; isLoading: boolean } {
-  const userId = useAuthStore((s) => s.userId);
-  const q = useQuery({
-    queryKey: [...KEY, userId, 'goal'],
-    queryFn: () => profileService.getGoal(userId),
-  });
-  return { goal: q.data ?? 'Feeling happy and healthy', isLoading: q.isLoading };
+  const goal = useLocalMealsStore((s) => s.goal);
+  const hydrated = useLocalMealsStore((s) => s.hydrated);
+  return { goal: goal || 'Feeling happy and healthy', isLoading: !hydrated };
 }
 
 export function useSetGoal(): (goal: string) => Promise<void> {
-  const userId = useAuthStore((s) => s.userId);
-  const qc = useQueryClient();
-  const m = useMutation({
-    mutationFn: (goal: string) => profileService.setGoal(userId, goal),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
-  });
-  return (goal: string) => m.mutateAsync(goal);
+  return async (goal: string) => {
+    useLocalMealsStore.getState().setGoal(goal);
+    if (isSupabaseConfigured) triggerSync();
+  };
 }

@@ -27,6 +27,12 @@ interface LocalMealsState {
   updateMeal: (id: string, patch: Partial<Meal>) => void;
   removeMeal: (id: string) => void;
   setMeals: (m: Meal[]) => void;
+  /**
+   * Replace one user's meals with the given list, preserving any other user's
+   * rows. Used by the sync engine after pulling server state (callers merge in
+   * still-pending local ops before calling this).
+   */
+  replaceUserMeals: (userId: string, meals: Meal[]) => void;
 }
 
 export const useLocalMealsStore = create<LocalMealsState>()(
@@ -43,6 +49,8 @@ export const useLocalMealsStore = create<LocalMealsState>()(
         })),
       removeMeal: (id) => set((s) => ({ meals: s.meals.filter((x) => x.id !== id) })),
       setMeals: (meals) => set({ meals }),
+      replaceUserMeals: (userId, meals) =>
+        set((s) => ({ meals: [...s.meals.filter((m) => m.userId !== userId), ...meals] })),
     }),
     {
       name: 'the-may-local-v1',

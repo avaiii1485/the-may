@@ -6,7 +6,7 @@ interface AuthState {
   setUser: (id: string, email: string | null) => void;
 }
 
-const LOCAL_USER_ID = 'local-user';
+export const LOCAL_USER_ID = 'local-user';
 
 export const useAuthStore = create<AuthState>((set) => ({
   userId: LOCAL_USER_ID,

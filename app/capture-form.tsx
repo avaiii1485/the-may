@@ -3,18 +3,15 @@ import { Pencil, X } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CatalogReflection, type MultiField, type SingleField } from '@/components/capture/CatalogReflection';
 import { DateTimeRow } from '@/components/capture/DateTimeRow';
-import { FeelingRow } from '@/components/capture/FeelingRow';
-import {
-  MultiSelectSection,
-  SingleSelectSection,
-} from '@/components/capture/ReflectionSection';
 import { SaveAsBar } from '@/components/capture/SaveAsBar';
 import { LoadingOverlay } from '@/components/common/LoadingOverlay';
 import { useI18n } from '@/i18n';
 import { useCreateMeal } from '@/hooks/useMeals';
+import { useQuestions } from '@/hooks/useQuestions';
 import { useCaptureDraftStore } from '@/stores/captureDraftStore';
-import { QUESTIONS, type DraftMeal } from '@/types/meal';
+import type { DraftMeal } from '@/types/meal';
 
 function nowIso(): string {
   const d = new Date();
@@ -31,6 +28,12 @@ export default function CaptureFormScreen(): JSX.Element {
   const setSingle = useCaptureDraftStore((s) => s.setSingle);
   const setFeeling = useCaptureDraftStore((s) => s.setFeeling);
   const { saveOnPath, saveOffPath, isPending } = useCreateMeal();
+  const questions = useQuestions();
+
+  const setSingleSafe = (field: SingleField, value: string) => {
+    if (field === 'howWasIt') setSingle('howWasIt', value as DraftMeal['howWasIt']);
+    else setSingle('howMade', value as DraftMeal['howMade']);
+  };
 
   // Default the meal time to now when arriving with no time set (camera/import flow).
   useEffect(() => {
@@ -141,48 +144,20 @@ export default function CaptureFormScreen(): JSX.Element {
           <Text className="text-bubble-active font-semibold">{t('capture.customize')}</Text>
         </View>
 
-        <MultiSelectSection
-          label={t('q.whyEat')}
-          options={QUESTIONS.whyEat.options}
-          selected={draft.whyEat}
-          onToggle={(v) => toggleMulti('whyEat', v)}
-        />
-
-        <FeelingRow selected={draft.feeling} onSelect={setFeeling} />
-
-        <MultiSelectSection
-          label={t('q.ateWith')}
-          options={QUESTIONS.ateWith.options}
-          selected={draft.ateWith}
-          onToggle={(v) => toggleMulti('ateWith', v)}
-        />
-
-        <SingleSelectSection<NonNullable<DraftMeal['howWasIt']>>
-          label={t('q.howWasIt')}
-          options={QUESTIONS.howWasIt.options}
-          selected={draft.howWasIt}
-          onSelect={(v) => setSingle('howWasIt', v)}
-        />
-
-        <MultiSelectSection
-          label={t('q.whereEat')}
-          options={QUESTIONS.whereEat.options}
-          selected={draft.whereEat}
-          onToggle={(v) => toggleMulti('whereEat', v)}
-        />
-
-        <SingleSelectSection<NonNullable<DraftMeal['howMade']>>
-          label={t('q.howMade')}
-          options={QUESTIONS.howMade.options}
-          selected={draft.howMade}
-          onSelect={(v) => setSingle('howMade', v)}
-        />
-
-        <MultiSelectSection
-          label={t('q.madeMeFeel')}
-          options={QUESTIONS.madeMeFeel.options}
-          selected={draft.madeMeFeel}
-          onToggle={(v) => toggleMulti('madeMeFeel', v)}
+        <CatalogReflection
+          questions={questions}
+          multiValues={{
+            whyEat: draft.whyEat,
+            ateWith: draft.ateWith,
+            whereEat: draft.whereEat,
+            madeMeFeel: draft.madeMeFeel,
+          }}
+          onToggleMulti={(field: MultiField, value) => toggleMulti(field, value)}
+          howWasIt={draft.howWasIt}
+          howMade={draft.howMade}
+          onSetSingle={setSingleSafe}
+          feeling={draft.feeling}
+          onSetFeeling={setFeeling}
         />
       </ScrollView>
 
