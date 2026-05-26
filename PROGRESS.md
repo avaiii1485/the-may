@@ -63,6 +63,17 @@ Next session, in order:
 2. Optional: a true Jalali date/time picker on the Persian side (today the picker stays Gregorian — only displayed dates are Jalali).
 3. Optional: address the remaining known TS error (`MoodBySourceCard.tsx:49`) — the two `services/profile.ts` ones are now resolved. Doesn't block runtime/Vercel.
 
+### Planned track: full offline-first + cross-device accounts (discuss details when we start)
+The app is already offline-first (local store + outbox + opportunistic sync). To
+complete the "use offline, log in anywhere, data follows your account" vision:
+1. **Real login** (email magic-link recommended) on top of the anonymous base — unlocks cross-device.
+2. **Claim anonymous data on signup** so early anonymous users keep their meals.
+3. **Profile two-way sync** (currently push-only) so settings follow the account.
+4. **Local storage capacity:** web photos → IndexedDB (localStorage ~5 MB cap); native → SQLite if histories get large.
+5. **Conflict handling:** last-write-wins via `updated_at` for same-meal edits on two devices.
+6. **Sync-status UI:** "Synced / Saving… / Offline" indicator for user trust.
+Note: DB schema needs **no changes** — Option A (user_id everywhere, soft delete, updated_at, RLS) already fits. Open question: allow anonymous start + optional later signup, or require login up front?
+
 ### Backend follow-ups (after activation)
 - ✅ DONE (2026-05-25) — Catalog wired into capture + edit forms (Layer 1): `useQuestions` (`src/hooks/useQuestions.ts`) loads the catalog via `src/services/questions.ts`, falls back to `FALLBACK_QUESTIONS` offline; `src/components/capture/CatalogReflection.tsx` renders sections from it; `src/lib/questionFields.ts` maps core keys→fields. Catalog drives structure (set/order/type/options/active); labels still via i18n `tv()`. **Layer 2 (not done):** brand-new dynamic questions stored in `meals.answers` jsonb + DB-driven label renaming.
 - Avatar → `avatars` Storage upload (profile sync skips avatar today to avoid base64 bloat in the row).
