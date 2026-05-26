@@ -1,7 +1,7 @@
 # PROGRESS.md
 
 ## Last Updated
-2026-05-24
+2026-05-26
 
 ## Completed in Recent Sessions
 - Full English / Persian bilingual: `src/i18n/{strings,index}.ts`, `useI18n` hook, every screen routed through `t` / `tv`, RTL via `document.dir` + per-paragraph rules, Profile language toggle, Persian font Samim loaded via runtime-injected `@font-face` + `html[lang='fa'] *` `!important` rule (`app/_layout.tsx`).
@@ -39,7 +39,21 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
-## In Progress — RESUME HERE next session (2026-05-25)
+## Live now (2026-05-26)
+- **Pushed & deployed:** Supabase backend + local-first sync + offline outbox + question catalog are live on Vercel (env vars set, redeployed, verified end-to-end on the live site).
+- **Email+password auth shipped:** real accounts on top of the anonymous base. `/auth` is a real navigation screen (app/auth.tsx) — sign up (converts the current anonymous user in place, keeping meals), log in, log out (local-scope, with confirm). Anonymous-first: the screen invites sign-in on launch with "Skip for now"; anonymous accounts are created ONLY on explicit skip (no junk-account-on-reload). `useAuthSession` no longer auto-creates anon users; `authStore.initialized` prevents a gate flash. Profile has an Account section. Verified: create-while-anon keeps data, cross-device login pulls data, logout/login reuses same account, offline→online sync intact.
+
+### Known auth limitations (not bugs)
+- Logging into a *different existing* account from an anonymous session does NOT merge the anonymous meals (merge is planned — item #2 of the offline+accounts track).
+- Email confirmation is OFF (turn ON for production; would add a "check your inbox" step).
+- `authStore.isAnonymous` is currently set-but-unused (kept for the planned multi-device work).
+
+## Resume / next session
+1. **Backend polish:** avatar→Storage upload, multi-device profile pull/merge, one-time `local-user`→real-uid meal migration.
+2. **Offline+accounts track:** merge-anonymous-data-on-signup, IndexedDB/SQLite for photos, conflict handling, sync-status UI, other login methods (Google/magic-link).
+3. **Layer 2 dynamic questions:** new questions stored in `meals.answers` jsonb + DB-driven label renaming.
+
+## (Earlier) In Progress — RESUME HERE next session (2026-05-25)
 Backend is **live and fully tested locally** against a real Supabase project
 (ref `lobvpaqhgephjyeiupng`): migrations run, Anonymous sign-ins enabled,
 `.env.local` set (gitignored). Verified end-to-end: anon sign-in, meal create/

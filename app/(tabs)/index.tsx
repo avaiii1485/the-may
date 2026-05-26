@@ -1,5 +1,5 @@
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useRef } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useRef } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BadgeCelebration } from '@/components/path/BadgeCelebration';
@@ -10,13 +10,30 @@ import { useI18n } from '@/i18n';
 import { useMeals } from '@/hooks/useMeals';
 import { useGoal } from '@/hooks/useProfile';
 import { groupMealsByDay, withEmptyDays } from '@/lib/dayGroup';
+import { isSupabaseConfigured } from '@/lib/supabase';
 import { startOfDay } from '@/lib/time';
+import { useAuthStore } from '@/stores/authStore';
+import { useAuthPromptStore } from '@/stores/authPromptStore';
 
 export default function PathScreen(): JSX.Element {
   const { t } = useI18n();
   const { data: meals } = useMeals();
   const { goal } = useGoal();
   const today = startOfDay(new Date());
+
+  // Invite sign-in on first launch when there's no account and the user hasn't
+  // skipped. Presented once per session; logout re-opens it explicitly.
+  const accountEmail = useAuthStore((s) => s.email);
+  const authInitialized = useAuthStore((s) => s.initialized);
+  const authDismissed = useAuthPromptStore((s) => s.dismissed);
+  const promptedRef = useRef(false);
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    if (authInitialized && !accountEmail && !authDismissed && !promptedRef.current) {
+      promptedRef.current = true;
+      router.push('/auth');
+    }
+  }, [authInitialized, accountEmail, authDismissed]);
 
   // groupMealsByDay returns desc (newest first). Reverse so the timeline reads
   // oldest → newest from top to bottom of the scroll, with today at the bottom.

@@ -11,6 +11,10 @@ import { useMeals } from '@/hooks/useMeals';
 import { useGoal } from '@/hooks/useProfile';
 import { getAllBadges } from '@/lib/badges';
 import { toJalali } from '@/lib/jalali';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { signOut } from '@/services/auth';
+import { LOCAL_USER_ID, useAuthStore } from '@/stores/authStore';
+import { useAuthPromptStore } from '@/stores/authPromptStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { type ProfileData, useProfileStore } from '@/stores/profileStore';
 
@@ -33,6 +37,25 @@ export default function ProfileScreen(): JSX.Element {
   const profile = useProfileStore();
   const update = useProfileStore((s) => s.update);
   const { data: meals } = useMeals();
+  const accountEmail = useAuthStore((s) => s.email);
+  const setAuthDismissed = useAuthPromptStore((s) => s.setDismissed);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
+
+  const onLogout = async () => {
+    setLogoutConfirm(false);
+    try {
+      await signOut();
+    } catch (e) {
+      console.warn('[auth] sign out failed:', e instanceof Error ? e.message : String(e));
+    }
+    // Force the logged-out state immediately rather than waiting on the auth
+    // event, so logout can't appear to "do nothing".
+    useAuthStore.getState().setUser(LOCAL_USER_ID, null, false);
+    setAuthDismissed(false);
+    router.push('/auth');
+  };
+
+  const openSignIn = () => router.push('/auth');
 
   const [form, setForm] = useState<ProfileData>({
     avatarUri: profile.avatarUri,
@@ -239,6 +262,41 @@ export default function ProfileScreen(): JSX.Element {
           </View>
         </View>
 
+        {isSupabaseConfigured ? (
+          <View className="px-5 py-4 border-b border-slate-100">
+            <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
+              {t('auth.account')}
+            </Text>
+            {accountEmail ? (
+              <>
+                <Text className="text-ink text-sm mb-3">
+                  {t('auth.signedInAs', { email: accountEmail })}
+                </Text>
+                <Pressable
+                  onPress={() => setLogoutConfirm(true)}
+                  className="rounded-full py-3 items-center bg-bg-card"
+                  accessibilityRole="button"
+                  accessibilityLabel={t('auth.logOut')}
+                >
+                  <Text className="text-ink font-bold tracking-widest">{t('auth.logOut')}</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text className="text-ink-soft text-sm mb-3">{t('auth.anonNote')}</Text>
+                <Pressable
+                  onPress={openSignIn}
+                  className="rounded-full py-3 items-center bg-bubble-active"
+                  accessibilityRole="button"
+                  accessibilityLabel={t('auth.signInCta')}
+                >
+                  <Text className="text-white font-bold tracking-widest">{t('auth.signInCta')}</Text>
+                </Pressable>
+              </>
+            )}
+          </View>
+        ) : null}
+
         <View className="flex-row justify-around py-5 border-b border-slate-100">
           <View className="items-center">
             <Text className="text-ink text-2xl font-extrabold">{d(stats.total)}</Text>
@@ -329,6 +387,47 @@ export default function ProfileScreen(): JSX.Element {
           </View>
         </View>
       </ScrollView>
+
+      {logoutConfirm ? (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15,23,42,0.45)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+          }}
+        >
+          <View className="bg-white rounded-3xl p-6 w-full" style={{ maxWidth: 360 }}>
+            <Text className="text-ink text-lg font-extrabold text-center mb-1">
+              {t('auth.logoutConfirmTitle')}
+            </Text>
+            <Text className="text-ink-soft text-sm text-center mb-5">
+              {t('auth.logoutConfirmBody')}
+            </Text>
+            <Pressable
+              onPress={onLogout}
+              className="rounded-full py-3 items-center mb-2 bg-ink"
+              accessibilityRole="button"
+              accessibilityLabel={t('auth.logOut')}
+            >
+              <Text className="text-white font-bold tracking-wide">{t('auth.logOut')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setLogoutConfirm(false)}
+              className="rounded-full py-3 items-center bg-bg-card"
+              accessibilityRole="button"
+              accessibilityLabel={t('common.cancel')}
+            >
+              <Text className="text-ink font-bold tracking-wide">{t('common.cancel')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }

@@ -89,6 +89,10 @@ html[lang='fa'], html[lang='fa'] * { font-family:'Samim', system-ui, -apple-syst
                 name="badges"
                 options={{ presentation: 'modal', headerShown: false }}
               />
+              <Stack.Screen
+                name="auth"
+                options={{ presentation: 'modal', headerShown: false, gestureEnabled: false }}
+              />
             </Stack>
             </View>
           </QueryClientProvider>

@@ -3,7 +3,12 @@ import { create } from 'zustand';
 interface AuthState {
   userId: string;
   email: string | null;
-  setUser: (id: string, email: string | null) => void;
+  /** True while signed in anonymously (no real account yet). */
+  isAnonymous: boolean;
+  /** False until the initial session check completes (prevents an auth-gate flash). */
+  initialized: boolean;
+  setUser: (id: string, email: string | null, isAnonymous: boolean) => void;
+  setInitialized: (v: boolean) => void;
 }
 
 export const LOCAL_USER_ID = 'local-user';
@@ -11,5 +16,8 @@ export const LOCAL_USER_ID = 'local-user';
 export const useAuthStore = create<AuthState>((set) => ({
   userId: LOCAL_USER_ID,
   email: null,
-  setUser: (userId, email) => set({ userId, email }),
+  isAnonymous: false,
+  initialized: false,
+  setUser: (userId, email, isAnonymous) => set({ userId, email, isAnonymous }),
+  setInitialized: (initialized) => set({ initialized }),
 }));
