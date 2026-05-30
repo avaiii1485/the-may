@@ -7,6 +7,9 @@
     "scheme": "themay",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true
@@ -35,7 +38,19 @@
       "bundleIdentifier": "com.themay.app"
     },
     "android": {
-      "package": "com.themay.app"
+      "package": "com.themay.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ]
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "8110698b-35bf-4179-b4e7-de5b4decf364"
+      }
     }
   }
 }

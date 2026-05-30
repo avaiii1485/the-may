@@ -39,6 +39,19 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
+## APK / mobile release — Phase 1 ready (2026-05-26, awaiting icon)
+- EAS CLI v20 installed; Expo account `ava8y` linked; project id `8110698b-35bf-4179-b4e7-de5b4decf364` (https://expo.dev/accounts/ava8y/projects/the-may).
+- `expo-updates ~0.25.28` added so the first APK can receive OTA updates (critical: must be in the first build).
+- `eas.json` with `development` / `preview` (APK) / `production` (AAB) profiles.
+- `app.json`: `runtimeVersion.policy = "sdkVersion"`, `extra.eas.projectId`, Android permissions auto-added (camera + record_audio).
+- EAS env vars set sensitive on all 3 environments: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+- **⏳ Blocker before first build:** 1024×1024 app icon + Android adaptive icon (foreground + bg color) + splash image. User to provide artwork.
+- **Then:** `eas build -p android --profile preview` → ~10–15 min cloud build → APK install link.
+- **Ongoing:** code/UI changes ship via `eas update` (OTA, ~2 min); native changes require a new build.
+
+## Iran reachability (planned UX improvement)
+Supabase (`*.supabase.co` on AWS) is blocked in Iran without a VPN. The offline-first part of the app works fully without internet; only cloud features (auth/sync/photo upload) fail without VPN. **Planned:** detect Supabase unreachable and silently keep the user in offline/anonymous mode — don't show the "Create account" gate that just errors. A "Sign in / Create account" button in Profile still lets them try on VPN. Longer term options: self-host Supabase on a VPS reachable from Iran, or proxy via a custom domain.
+
 ## Live now (2026-05-26)
 - **Pushed & deployed:** Supabase backend + local-first sync + offline outbox + question catalog are live on Vercel (env vars set, redeployed, verified end-to-end on the live site).
 - **Email+password auth shipped:** real accounts on top of the anonymous base. `/auth` is a real navigation screen (app/auth.tsx) — sign up (converts the current anonymous user in place, keeping meals), log in, log out (local-scope, with confirm). Anonymous-first: the screen invites sign-in on launch with "Skip for now"; anonymous accounts are created ONLY on explicit skip (no junk-account-on-reload). `useAuthSession` no longer auto-creates anon users; `authStore.initialized` prevents a gate flash. Profile has an Account section. Verified: create-while-anon keeps data, cross-device login pulls data, logout/login reuses same account, offline→online sync intact.
