@@ -33,7 +33,8 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to capture meal photos."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "web": {
       "bundler": "metro",
