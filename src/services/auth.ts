@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { recordAuthEvent } from '@/services/loginEvents';
 
 // Email+password auth. Sign-up converts the current anonymous user in place
 // (same user id) so the meals they already logged are kept; if somehow not
@@ -9,16 +10,19 @@ export async function signUp(email: string, password: string): Promise<void> {
   if (data.session?.user?.is_anonymous) {
     const { error } = await supabase.auth.updateUser({ email, password });
     if (error) throw error;
+    await recordAuthEvent('sign_up');
     return;
   }
   const { error } = await supabase.auth.signUp({ email, password });
   if (error) throw error;
+  await recordAuthEvent('sign_up');
 }
 
 export async function signIn(email: string, password: string): Promise<void> {
   if (!supabase) throw new Error('Supabase not configured');
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
+  await recordAuthEvent('sign_in');
 }
 
 export async function signOut(): Promise<void> {

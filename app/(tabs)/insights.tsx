@@ -130,14 +130,14 @@ export default function InsightsScreen(): JSX.Element {
                 <View
                   style={{ backgroundColor: s.color, width: 10, height: 10, borderRadius: 5 }}
                 />
-                <Text className="text-ink ml-2">{s.label}</Text>
+                <Text className="text-ink ml-2">{tv('opt', s.label)}</Text>
               </View>
             ))}
           </View>
           <DonutChart
             slices={insights.whyEatSlices}
             centerTopLabel={`${whyPct}%`}
-            centerBottomLabel={topWhy?.label}
+            centerBottomLabel={topWhy ? tv('opt', topWhy.label) : undefined}
           />
         </View>
       ),

@@ -15,6 +15,7 @@ export interface Database {
           avatar_url: string | null;
           bio: string | null;
           phone_number: string | null;
+          email: string | null;
           goal: string | null;
           lang: string;
           prefs: Json;
@@ -28,6 +29,7 @@ export interface Database {
           avatar_url?: string | null;
           bio?: string | null;
           phone_number?: string | null;
+          email?: string | null;
           goal?: string | null;
           lang?: string;
           prefs?: Json;
@@ -35,6 +37,33 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
+      };
+      login_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          occurred_at: string;
+          event: string | null;
+          platform: string | null;
+          os_version: string | null;
+          device_name: string | null;
+          model_name: string | null;
+          app_version: string | null;
+          user_agent: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          occurred_at?: string;
+          event?: string | null;
+          platform?: string | null;
+          os_version?: string | null;
+          device_name?: string | null;
+          model_name?: string | null;
+          app_version?: string | null;
+          user_agent?: string | null;
+        };
+        Update: Partial<Database['public']['Tables']['login_events']['Insert']>;
       };
       meals: {
         Row: {

@@ -5,7 +5,7 @@ import {
   remoteUpdateMeal,
   remoteUpsertMeal,
 } from '@/services/meals';
-import { upsertProfile } from '@/services/profile';
+import { getProfile, upsertProfile } from '@/services/profile';
 import { uploadMealPhoto } from '@/services/storage';
 import { useAuthStore, LOCAL_USER_ID } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
@@ -87,6 +87,29 @@ async function pullMeals(userId: string): Promise<void> {
   useLocalMealsStore.getState().replaceUserMeals(userId, merged);
 }
 
+// Pull the account's profile from the cloud and adopt cloud values where the
+// local field is empty/default — i.e. a fresh device picks up your name, goal,
+// etc., while a device where you've already edited keeps its edits. The
+// "local non-empty wins" rule + diffing avoids clobbering and sync loops.
+async function pullProfile(userId: string): Promise<void> {
+  const remote = await getProfile(userId);
+  if (!remote) return;
+
+  const ps = useProfileStore.getState();
+  const patch: Partial<{ preferredName: string; handle: string; bio: string; phoneNumber: string }> = {};
+  if (!ps.preferredName && remote.preferredName) patch.preferredName = remote.preferredName;
+  if (!ps.handle && remote.handle) patch.handle = remote.handle;
+  if (!ps.bio && remote.bio) patch.bio = remote.bio;
+  if (!ps.phoneNumber && remote.phoneNumber) patch.phoneNumber = remote.phoneNumber;
+  if (Object.keys(patch).length > 0) ps.update(patch);
+
+  const localGoal = useLocalMealsStore.getState().goal;
+  const isDefaultGoal = !localGoal || localGoal === 'Feeling happy and healthy';
+  if (isDefaultGoal && remote.goal && remote.goal !== localGoal) {
+    useLocalMealsStore.getState().setGoal(remote.goal);
+  }
+}
+
 // Push-only for now: this device's profile state wins. (Multi-device profile
 // pull/merge is a future refinement; push-only guarantees offline edits aren't lost.)
 async function pushProfile(userId: string): Promise<void> {
@@ -105,19 +128,29 @@ async function pushProfile(userId: string): Promise<void> {
   });
 }
 
+async function runPhase(name: string, fn: () => Promise<void>): Promise<void> {
+  try {
+    await fn();
+  } catch (e) {
+    // Each phase is isolated: one failing must never block the others. In
+    // particular a failed push must not stop the pull that loads a fresh
+    // device's data (that caused a blank screen after logging in elsewhere).
+    console.warn(`[sync] ${name} failed:`, e instanceof Error ? e.message : String(e));
+  }
+}
+
 export async function syncNow(): Promise<void> {
   if (running || !canSync()) return;
   running = true;
-  try {
-    const userId = useAuthStore.getState().userId;
-    await pushOutbox(userId);
-    await pushProfile(userId);
-    await pullMeals(userId);
-  } catch (e) {
-    console.warn('[sync] error:', e instanceof Error ? e.message : String(e));
-  } finally {
-    running = false;
-  }
+  const userId = useAuthStore.getState().userId;
+  // Pull before push: a fresh device must show the account's data immediately,
+  // and pulling the profile first prevents an empty local profile from
+  // overwriting the cloud one.
+  await runPhase('pullProfile', () => pullProfile(userId));
+  await runPhase('pullMeals', () => pullMeals(userId));
+  await runPhase('pushOutbox', () => pushOutbox(userId));
+  await runPhase('pushProfile', () => pushProfile(userId));
+  running = false;
 }
 
 // Debounced trigger for write paths and event listeners.

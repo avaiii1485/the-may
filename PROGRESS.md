@@ -52,6 +52,18 @@ Refactored the app to **local-first with an offline outbox**:
 ## Iran reachability (planned UX improvement)
 Supabase (`*.supabase.co` on AWS) is blocked in Iran without a VPN. The offline-first part of the app works fully without internet; only cloud features (auth/sync/photo upload) fail without VPN. **Planned:** detect Supabase unreachable and silently keep the user in offline/anonymous mode — don't show the "Create account" gate that just errors. A "Sign in / Create account" button in Profile still lets them try on VPN. Longer term options: self-host Supabase on a VPS reachable from Iran, or proxy via a custom domain.
 
+## In progress — native bug-fix + telemetry batch (awaiting one APK rebuild)
+Two native-module changes batched into the next `eas build`:
+- **Date/time picker fix:** native `DateTimeRow.tsx` rewritten to use `@react-native-community/datetimepicker` (tap Date/Time → native dialog). The old free-text TextInputs reformatted on every keystroke (parsed ISO → NaN), so manual date/time entry was impossible on Android. Web variant unchanged.
+- **Login telemetry:** migration `0003_login_events.sql` adds `profiles.email` (mirror) + a `login_events` table (one row per sign_in/sign_up with platform, os_version, device_name, model_name, app_version, user_agent; RLS own-rows). `services/loginEvents.ts` gathers device info (expo-device + expo-constants + web UA) and inserts on signIn/signUp; also mirrors email to profiles. **Passwords are NOT stored** (declined — Supabase already hashes them; plaintext is a security risk with no use).
+- New native deps: `@react-native-community/datetimepicker@8.0.1`, `expo-device@~6.0.2` → require an APK rebuild to take effect on phones.
+
+**To activate:** (1) run `0003_login_events.sql` in Supabase SQL editor; (2) `eas build -p android --profile preview` + reinstall.
+
+### Bug fixes (2026-05-26, OTA-able JS — also ride the next APK build)
+- **Farsi "why I ate" donut legend** now translates option labels via `tv('opt', …)` (was showing raw English). Other insight cards already translated.
+- **Blank-meals-on-new-device root cause:** `syncNow` ran push→pull in one try block, so a failing `pushProfile` skipped `pullMeals` → fresh-device login showed nothing. Rewrote: each phase isolated (`runPhase`), and **pull before push**. Added `pullProfile` (adopt cloud values where local is empty/default) so a new device picks up name/goal instead of overwriting cloud with blanks. NOTE: this fixes the case where meals ARE in the cloud under the account id. The separate "log into a *different existing* account from anonymous → orphaned meals" gap (merge-on-signup) is still unbuilt.
+
 ## Live now (2026-05-26)
 - **Pushed & deployed:** Supabase backend + local-first sync + offline outbox + question catalog are live on Vercel (env vars set, redeployed, verified end-to-end on the live site).
 - **Email+password auth shipped:** real accounts on top of the anonymous base. `/auth` is a real navigation screen (app/auth.tsx) — sign up (converts the current anonymous user in place, keeping meals), log in, log out (local-scope, with confirm). Anonymous-first: the screen invites sign-in on launch with "Skip for now"; anonymous accounts are created ONLY on explicit skip (no junk-account-on-reload). `useAuthSession` no longer auto-creates anon users; `authStore.initialized` prevents a gate flash. Profile has an Account section. Verified: create-while-anon keeps data, cross-device login pulls data, logout/login reuses same account, offline→online sync intact.
