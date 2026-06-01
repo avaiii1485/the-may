@@ -23,8 +23,17 @@ export function OnPathArrow({ size = 28, color = '#FFFFFF' }: Props): JSX.Elemen
 export function OffPathArrow({ size = 28, color = '#FFFFFF' }: Props): JSX.Element {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* A detour sweeping up and to the left, with a defined chevron head. */}
       <Path
-        d="M16 20 C 16 13, 9 13, 7 6 M3 8 L7 4 L11 8"
+        d="M18 20 C 16 12, 12 9, 6 5"
+        stroke={color}
+        strokeWidth={2.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <Path
+        d="M6 12 L6 5 L13 5"
         stroke={color}
         strokeWidth={2.4}
         strokeLinecap="round"

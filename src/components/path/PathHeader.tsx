@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Settings } from 'lucide-react-native';
+import { Pencil } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { Avatar } from '@/components/common/Avatar';
 import { useI18n } from '@/i18n';
@@ -24,7 +24,7 @@ export function PathHeader({ goal }: Props): JSX.Element {
           accessibilityLabel="Choose focus"
           className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
         >
-          <Settings size={20} color="#FFFFFF" />
+          <Pencil size={18} color="#FFFFFF" />
         </Pressable>
         <View className="items-center flex-1 mx-2">
           <Text className="text-white/80 text-xs uppercase tracking-wider">
