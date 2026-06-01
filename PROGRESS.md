@@ -39,6 +39,15 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
+## UI/UX batch (2026-06-01)
+- **Sage green** (`#7FA37B`) replaces the brand blue (`#1FB6E5`) app-wide (bubble.active, accent.blue, donut/badge palettes, chevrons).
+- **Creamy theme:** soft cream app bg (`cream` token `#FCF6EE`) on all main screens; warm off-white cards (`bg.card` `#FFFCF7`); tab bar warm surface + orange active tint.
+- **Interactive donuts:** tapping a legend item or slice updates the center %/label/color (`DonutInsightCard`).
+- **In-app live camera:** Capture tab shows a live `expo-camera` `CameraView` inside the square frame; round button is the shutter; camera pauses when tab unfocused. (expo-camera was already a native dep.)
+- **New answer options:** how_was_it +"Bad", where_eat +"Outside" (types, QUESTIONS/fallback, Zod, i18n en/fa, and DB catalog via `0004_add_question_options.sql` — RUN THIS in Supabase).
+- **Persian fixes:** `ins.myGoal` → «تمرکز فعلی»; card adornment icons + PatternCard accent bar use direction-aware physical margins (logical `marginEnd` wasn't flipping under react-native-web); pink accent bar → orange (`#F39C3D`); meatball dropdown anchors to the correct side in RTL (left).
+- All OTA-able JS; ride the next APK build.
+
 ## APK / mobile release — Phase 1 ready (2026-05-26, awaiting icon)
 - EAS CLI v20 installed; Expo account `ava8y` linked; project id `8110698b-35bf-4179-b4e7-de5b4decf364` (https://expo.dev/accounts/ava8y/projects/the-may).
 - `expo-updates ~0.25.28` added so the first APK can receive OTA updates (critical: must be in the first build).

@@ -43,7 +43,7 @@ export default function SettingsScreen(): JSX.Element {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-slate-100">
         <Pressable
           onPress={() => router.back()}

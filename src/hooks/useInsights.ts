@@ -9,7 +9,7 @@ export interface DonutSlice {
   color: string;
 }
 
-const PALETTE = ['#1FB6E5', '#8C6CF1', '#F4C04C', '#34C9A2', '#F25C8B', '#94A3B8'];
+const PALETTE = ['#7FA37B', '#8C6CF1', '#F4C04C', '#34C9A2', '#F25C8B', '#94A3B8'];
 
 function topCounts(items: string[][], take = 4): { label: string; value: number }[] {
   const counts = new Map<string, number>();
@@ -68,7 +68,7 @@ export function useInsights(): InsightsData {
     const feelingArr = Array.from(feelingCounts.entries())
       .map(([k, v]) => ({ label: FEELING_EMOJI[k] ?? '🙂', value: v }))
       .sort((a, b) => b.value - a.value);
-    const feelingPalette = ['#F25C8B', '#1FB6E5', '#8C6CF1', '#34C9A2', '#F4C04C'];
+    const feelingPalette = ['#F25C8B', '#7FA37B', '#8C6CF1', '#34C9A2', '#F4C04C'];
     const feelingSlices: DonutSlice[] = feelingArr.map((x, i) => ({
       ...x,
       color: feelingPalette[i % feelingPalette.length] as string,

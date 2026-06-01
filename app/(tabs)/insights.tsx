@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CalendarHeatmap } from '@/components/insights/CalendarHeatmap';
 import { InsightsCardList } from '@/components/insights/InsightsCardList';
 import type { InsightCard } from '@/components/insights/insightCard';
-import { DonutChart } from '@/components/insights/DonutChart';
+import { DonutInsightCard } from '@/components/insights/DonutInsightCard';
 import { FastingCounter } from '@/components/insights/FastingCounter';
 import { MoodBySourceCard } from '@/components/insights/MoodBySourceCard';
 import { PatternCard } from '@/components/insights/PatternCard';
@@ -31,14 +31,6 @@ export default function InsightsScreen(): JSX.Element {
   const pinned = usePinnedInsightsStore((s) => s.pinned);
   const savedOrder = usePinnedInsightsStore((s) => s.order);
   const setOrder = usePinnedInsightsStore((s) => s.setOrder);
-
-  const topWhy = insights.whyEatSlices[0];
-  const totalWhy = insights.whyEatSlices.reduce((s, x) => s + x.value, 0);
-  const whyPct = totalWhy === 0 || !topWhy ? 0 : Math.round((topWhy.value / totalWhy) * 100);
-
-  const topFeel = insights.feelingSlices[0];
-  const totalFeel = insights.feelingSlices.reduce((s, x) => s + x.value, 0);
-  const feelPct = totalFeel === 0 || !topFeel ? 0 : Math.round((topFeel.value / totalFeel) * 100);
 
   const cards: CardDef[] = [
     {
@@ -121,23 +113,7 @@ export default function InsightsScreen(): JSX.Element {
       id: 'why',
       title: t('ins.why'),
       content: (
-        <View className="flex-row items-center">
-          <View className="flex-1">
-            {insights.whyEatSlices.map((s) => (
-              <View key={s.label} className="flex-row items-center mb-2">
-                <View
-                  style={{ backgroundColor: s.color, width: 10, height: 10, borderRadius: 5 }}
-                />
-                <Text className="text-ink ml-2">{tv('opt', s.label)}</Text>
-              </View>
-            ))}
-          </View>
-          <DonutChart
-            slices={insights.whyEatSlices}
-            centerTopLabel={`${whyPct}%`}
-            centerBottomLabel={topWhy ? tv('opt', topWhy.label) : undefined}
-          />
-        </View>
+        <DonutInsightCard slices={insights.whyEatSlices} labelFor={(s) => tv('opt', s.label)} />
       ),
     });
   }
@@ -146,26 +122,7 @@ export default function InsightsScreen(): JSX.Element {
     cards.push({
       id: 'feeling',
       title: t('ins.feeling'),
-      content: (
-        <View className="flex-row items-center">
-          <View className="flex-1">
-            {insights.feelingSlices.map((s) => (
-              <View key={s.label} className="flex-row items-center mb-2">
-                <View
-                  style={{ backgroundColor: s.color, width: 10, height: 10, borderRadius: 5 }}
-                />
-                <Text className="text-ink ml-2 text-lg">{s.label}</Text>
-              </View>
-            ))}
-          </View>
-          <DonutChart
-            slices={insights.feelingSlices}
-            centerTopLabel={`${feelPct}%`}
-            centerBottomLabel={topFeel?.label}
-            centerColor="#F25C8B"
-          />
-        </View>
-      ),
+      content: <DonutInsightCard slices={insights.feelingSlices} />,
     });
   }
 
@@ -222,7 +179,7 @@ export default function InsightsScreen(): JSX.Element {
     ) : null;
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
       <InsightsCardList
         items={items}
         header={Header}

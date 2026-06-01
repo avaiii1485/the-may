@@ -14,6 +14,8 @@ interface Props {
   centerTopLabel?: string;
   centerBottomLabel?: string;
   centerColor?: string;
+  /** Called when a slice is tapped. */
+  onSlicePress?: (index: number) => void;
 }
 
 export function DonutChart({
@@ -22,7 +24,8 @@ export function DonutChart({
   thickness = 22,
   centerTopLabel,
   centerBottomLabel,
-  centerColor = '#1FB6E5',
+  centerColor = '#7FA37B',
+  onSlicePress,
 }: Props): JSX.Element {
   const total = slices.reduce((s, x) => s + x.value, 0) || 1;
   const radius = (size - thickness) / 2;
@@ -35,7 +38,7 @@ export function DonutChart({
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size}>
         <G rotation="-90" origin={`${cx}, ${cy}`}>
-          {slices.map((s) => {
+          {slices.map((s, i) => {
             const len = (s.value / total) * circumference;
             const dash = `${len} ${circumference - len}`;
             const node = (
@@ -50,6 +53,7 @@ export function DonutChart({
                 strokeDasharray={dash}
                 strokeDashoffset={-offset}
                 strokeLinecap="butt"
+                onPress={onSlicePress ? () => onSlicePress(i) : undefined}
               />
             );
             offset += len;

@@ -69,7 +69,7 @@ export default function CaptureFormScreen(): JSX.Element {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
       <View
         pointerEvents={isPending ? 'none' : 'auto'}
         style={{ flex: 1 }}

@@ -12,7 +12,7 @@ interface Props {
 const VISIBLE_COUNT = 5;
 
 export function PatternCard({ meals }: Props): JSX.Element {
-  const { t, lang } = useI18n();
+  const { t, lang, isRTL } = useI18n();
   const insights = useMemo(
     () => detectInsights(meals, lang).slice(0, VISIBLE_COUNT),
     [meals, lang],
@@ -24,7 +24,7 @@ export function PatternCard({ meals }: Props): JSX.Element {
   }
 
   const current = insights[idx % insights.length]!;
-  const accent = current.direction === 'on' ? '#34C9A2' : '#F25C8B';
+  const accent = current.direction === 'on' ? '#34C9A2' : '#F39C3D';
 
   return (
     <View>
@@ -38,7 +38,7 @@ export function PatternCard({ meals }: Props): JSX.Element {
             alignSelf: 'stretch',
             backgroundColor: accent,
             borderRadius: 2,
-            marginRight: 12,
+            ...(isRTL ? { marginLeft: 12 } : { marginRight: 12 }),
             marginTop: 4,
           }}
         />
@@ -68,7 +68,7 @@ export function PatternCard({ meals }: Props): JSX.Element {
             accessibilityLabel={t('exp.next')}
           >
             <Text className="text-bubble-active font-semibold text-sm mr-1">{t('exp.next')}</Text>
-            <ChevronRight size={16} color="#1FB6E5" />
+            <ChevronRight size={16} color="#7FA37B" />
           </Pressable>
         </View>
       ) : null}

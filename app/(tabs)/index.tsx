@@ -54,7 +54,7 @@ export default function PathScreen(): JSX.Element {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
       <BadgeCelebration />
       <PathHeader goal={goal} />
       <ScrollView

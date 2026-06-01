@@ -13,7 +13,7 @@ export interface Meal {
   whyEat: string[];
   feeling: FeelingLevel | null;
   ateWith: string[];
-  howWasIt: 'Forgettable' | 'Good' | null;
+  howWasIt: 'Forgettable' | 'Good' | 'Bad' | null;
   whereEat: string[];
   howMade: 'Homemade' | 'Restaurant' | 'Fast Food' | 'Bakery' | 'Prepack' | 'Raw' | null;
   madeMeFeel: string[];
@@ -56,11 +56,11 @@ export const QUESTIONS = {
   },
   howWasIt: {
     label: 'How was it?',
-    options: ['Forgettable', 'Good'],
+    options: ['Forgettable', 'Good', 'Bad'],
   },
   whereEat: {
     label: 'Where did you eat?',
-    options: ['Table', 'TV', 'Car', 'Bed', 'Work desk', 'Standing', 'Couch'],
+    options: ['Table', 'TV', 'Car', 'Bed', 'Work desk', 'Standing', 'Couch', 'Outside'],
   },
   howMade: {
     label: 'How was it made?',

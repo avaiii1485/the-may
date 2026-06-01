@@ -15,14 +15,15 @@ export default function TabsLayout(): JSX.Element {
           height: 72,
           paddingTop: 8,
           paddingBottom: 12,
-          borderTopColor: '#E2E8F0',
+          backgroundColor: '#FFFCF7',
+          borderTopColor: '#F0E2CE',
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
         },
-        tabBarActiveTintColor: '#0F172A',
-        tabBarInactiveTintColor: '#94A3B8',
+        tabBarActiveTintColor: '#D6791F',
+        tabBarInactiveTintColor: '#C4A98A',
       }}
     >
       <Tabs.Screen

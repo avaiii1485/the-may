@@ -102,14 +102,14 @@ export default function MealEditScreen(): JSX.Element {
 
   if (isLoading || !form || !meal) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
+      <SafeAreaView className="flex-1 bg-cream items-center justify-center">
         <Text className="text-ink-soft">{t('common.loading')}</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
           onPress={() => router.back()}

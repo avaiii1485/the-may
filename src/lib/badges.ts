@@ -138,7 +138,7 @@ export const BADGES: readonly BadgeDef[] = [
     name: 'Consistent',
     description: 'Log 10 meals total.',
     emoji: '📝',
-    color: '#1FB6E5',
+    color: '#7FA37B',
     category: 'logging',
   },
   {
@@ -171,7 +171,7 @@ export const BADGES: readonly BadgeDef[] = [
     name: 'Week One',
     description: 'Log on 7 different days.',
     emoji: '🗓️',
-    color: '#1FB6E5',
+    color: '#7FA37B',
     category: 'streak',
   },
   {
@@ -238,7 +238,7 @@ export const BADGES: readonly BadgeDef[] = [
     name: 'First Snap',
     description: 'Log a meal with a photo.',
     emoji: '📸',
-    color: '#1FB6E5',
+    color: '#7FA37B',
     category: 'features',
   },
   {
@@ -296,7 +296,7 @@ export const BADGES: readonly BadgeDef[] = [
     name: 'Around Town',
     description: 'Eat at 5 different places.',
     emoji: '🌍',
-    color: '#1FB6E5',
+    color: '#7FA37B',
     category: 'variety',
   },
   {

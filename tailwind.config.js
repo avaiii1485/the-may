@@ -24,11 +24,11 @@ module.exports = {
         },
         bubble: {
           bg: '#F1F5F9',
-          active: '#1FB6E5',
+          active: '#7FA37B',
           activeText: '#FFFFFF',
         },
         accent: {
-          blue: '#1FB6E5',
+          blue: '#7FA37B',
           purple: '#8C6CF1',
           pink: '#F25C8B',
           green: '#34C9A2',
@@ -36,7 +36,12 @@ module.exports = {
         },
         bg: {
           DEFAULT: '#FFFFFF',
-          card: '#F8FAFC',
+          card: '#FFFCF7',
+        },
+        // Soft creamy app background — warm, classy, brightens every screen.
+        cream: {
+          DEFAULT: '#FCF6EE',
+          deep: '#F6EAD8',
         },
       },
       fontFamily: {

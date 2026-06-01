@@ -25,6 +25,8 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'capture.addPhoto': 'Add meal photo',
     'capture.previewWeb': 'Tap the shutter or import a photo',
     'capture.previewNative': 'Camera preview here on device',
+    'capture.cameraPermission': 'Allow camera access to take meal photos.',
+    'capture.allowCamera': 'Allow camera',
     'capture.viaText': 'meal via text',
     'capture.import': 'import photo',
     'capture.uncoverWhy': 'Uncover the why',
@@ -72,6 +74,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     // howWasIt
     'opt.Forgettable': 'Forgettable',
     'opt.Good': 'Good',
+    'opt.Bad': 'Bad',
     // whereEat
     'opt.Table': 'Table',
     'opt.TV': 'TV',
@@ -80,6 +83,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'opt.Work desk': 'Work desk',
     'opt.Standing': 'Standing',
     'opt.Couch': 'Couch',
+    'opt.Outside': 'Outside',
     // howMade
     'opt.Homemade': 'Homemade',
     'opt.Restaurant': 'Restaurant',
@@ -279,6 +283,8 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'capture.addPhoto': 'عکس وعده‌ات رو اضافه کن',
     'capture.previewWeb': 'دکمه‌ی عکس رو بزن یا یک عکس انتخاب کن',
     'capture.previewNative': 'تصویر دوربین اینجا نمایش داده می‌شود',
+    'capture.cameraPermission': 'برای گرفتن عکس وعده، به دوربین دسترسی بده.',
+    'capture.allowCamera': 'اجازه‌ی دوربین',
     'capture.viaText': 'ثبت با متن',
     'capture.import': 'انتخاب از گالری',
     'capture.uncoverWhy': 'بیا ببینیم چرا',
@@ -326,6 +332,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     // howWasIt
     'opt.Forgettable': 'معمولی بود',
     'opt.Good': 'خوب بود',
+    'opt.Bad': 'بد بود',
     // whereEat
     'opt.Table': 'سر میز',
     'opt.TV': 'جلوی تلویزیون',
@@ -334,6 +341,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'opt.Work desk': 'پشت میز کار',
     'opt.Standing': 'ایستاده',
     'opt.Couch': 'روی کاناپه',
+    'opt.Outside': 'بیرون',
     // howMade
     'opt.Homemade': 'خونگی',
     'opt.Restaurant': 'رستوران',
@@ -447,7 +455,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'badges.cat.variety': 'تنوع',
 
     // Insights
-    'ins.myGoal': 'هدف زندگی‌ام',
+    'ins.myGoal': 'تمرکز فعلی',
     'ins.tryExperiment': 'یک تجربه‌ی تازه',
     'ins.weeklyRecap': 'مرور هفته',
     'ins.topInsight': 'نکته‌ی کلیدی برای تو',

@@ -29,7 +29,7 @@ export function CollapsibleCard({
   defaultOpen = false,
   onLongPress,
 }: Props): JSX.Element {
-  const { t } = useI18n();
+  const { t, isRTL } = useI18n();
   const pinned = usePinnedInsightsStore((s) => s.pinned.includes(id));
   const togglePin = usePinnedInsightsStore((s) => s.toggle);
 
@@ -67,7 +67,9 @@ export function CollapsibleCard({
           accessibilityState={{ expanded: open }}
           accessibilityLabel={title}
         >
-          {leftAdornment ? <View style={{ marginRight: 10 }}>{leftAdornment}</View> : null}
+          {leftAdornment ? (
+            <View style={isRTL ? { marginLeft: 12 } : { marginRight: 10 }}>{leftAdornment}</View>
+          ) : null}
           <Text
             className={`${titleClass} text-xs uppercase tracking-widest font-bold flex-1`}
             numberOfLines={1}
@@ -119,7 +121,7 @@ export function CollapsibleCard({
             style={{
               position: 'absolute',
               top: 44,
-              right: 8,
+              ...(isRTL ? { left: 8 } : { right: 8 }),
               zIndex: 30,
               minWidth: 140,
               backgroundColor: '#FFFFFF',

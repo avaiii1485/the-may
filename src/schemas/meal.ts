@@ -14,7 +14,7 @@ export const draftMealSchema = z.object({
   whyEat: z.array(z.string()),
   feeling: feelingSchema.nullable(),
   ateWith: z.array(z.string()),
-  howWasIt: z.enum(['Forgettable', 'Good']).nullable(),
+  howWasIt: z.enum(['Forgettable', 'Good', 'Bad']).nullable(),
   whereEat: z.array(z.string()),
   howMade: z.enum(['Homemade', 'Restaurant', 'Fast Food', 'Bakery', 'Prepack', 'Raw']).nullable(),
   madeMeFeel: z.array(z.string()),

@@ -61,7 +61,7 @@ export default function AuthScreen(): JSX.Element {
   const primaryLabel = mode === 'signup' ? t('auth.createAccount') : t('auth.logIn');
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-cream" edges={['top', 'bottom']}>
       <ScrollView
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
         keyboardShouldPersistTaps="handled"
