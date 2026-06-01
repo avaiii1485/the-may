@@ -1,14 +1,10 @@
 import { router } from 'expo-router';
 import { CalendarDays, Clock, Lightbulb, Sparkles } from 'lucide-react-native';
-import { useCallback, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import DraggableFlatList, {
-  ScaleDecorator,
-  type RenderItemParams,
-} from 'react-native-draggable-flatlist';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CollapsibleCard } from '@/components/common/CollapsibleCard';
 import { CalendarHeatmap } from '@/components/insights/CalendarHeatmap';
+import { InsightsCardList } from '@/components/insights/InsightsCardList';
+import type { InsightCard } from '@/components/insights/insightCard';
 import { DonutChart } from '@/components/insights/DonutChart';
 import { FastingCounter } from '@/components/insights/FastingCounter';
 import { MoodBySourceCard } from '@/components/insights/MoodBySourceCard';
@@ -25,13 +21,7 @@ import { isSupabaseConfigured } from '@/lib/supabase';
 import { triggerSync } from '@/lib/sync';
 import { usePinnedInsightsStore } from '@/stores/pinnedInsightsStore';
 
-interface CardDef {
-  id: string;
-  title: string;
-  variant?: 'default' | 'highlight';
-  leftAdornment?: ReactNode;
-  content: ReactNode;
-}
+type CardDef = InsightCard;
 
 export default function InsightsScreen(): JSX.Element {
   const { t, tv, d } = useI18n();
@@ -194,25 +184,6 @@ export default function InsightsScreen(): JSX.Element {
         ]
       : naturalOrder;
 
-  const renderItem = useCallback(
-    ({ item, drag, isActive }: RenderItemParams<CardDef>) => (
-      <ScaleDecorator>
-        <View className="px-4" style={{ opacity: isActive ? 0.9 : 1 }}>
-          <CollapsibleCard
-            id={item.id}
-            title={item.title}
-            variant={item.variant}
-            leftAdornment={item.leftAdornment}
-            onLongPress={drag}
-          >
-            {item.content}
-          </CollapsibleCard>
-        </View>
-      </ScaleDecorator>
-    ),
-    [],
-  );
-
   const Header = (
     <View className="items-center pt-8 pb-4 px-6">
       <Text className="text-ink-mute text-xs uppercase tracking-widest">{t('ins.myGoal')}</Text>
@@ -252,17 +223,14 @@ export default function InsightsScreen(): JSX.Element {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <DraggableFlatList
-        data={items}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        onDragEnd={({ data }) => {
-          setOrder(data.map((c) => c.id));
+      <InsightsCardList
+        items={items}
+        header={Header}
+        footer={Footer}
+        onReorder={(ids) => {
+          setOrder(ids);
           if (isSupabaseConfigured) triggerSync();
         }}
-        ListHeaderComponent={Header}
-        ListFooterComponent={Footer}
-        contentContainerStyle={{ paddingBottom: 40 }}
       />
     </SafeAreaView>
   );
