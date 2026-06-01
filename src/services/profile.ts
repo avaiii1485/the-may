@@ -6,6 +6,7 @@ type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 export interface ProfilePrefs {
   pinnedInsights?: string[];
   seenBadges?: string[];
+  insightOrder?: string[];
 }
 
 export interface RemoteProfile {

@@ -2,7 +2,6 @@ import { router } from 'expo-router';
 import { Share2, X } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import { Alert, Platform, Pressable, ScrollView, Share, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { DayCollage } from '@/components/recap/DayCollage';
 import { toJalali } from '@/lib/jalali';
 import { useI18n } from '@/i18n';
@@ -92,19 +91,42 @@ export default function WeekRecapScreen(): JSX.Element {
   }, [start, today, pct, total, topInsight, t, dg, fmtDate]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <View className="flex-row items-center justify-between px-4 py-2">
-        <Pressable
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center"
-          accessibilityLabel={t('common.close')}
-        >
-          <X size={24} color="#0F172A" />
-        </Pressable>
-        <View className="w-10" />
-      </View>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: 'rgba(15,23,42,0.45)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
+    >
+      <Pressable
+        onPress={() => router.back()}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        accessibilityLabel={t('common.close')}
+      />
+      <View
+        style={{
+          width: '100%',
+          maxWidth: 420,
+          maxHeight: '88%',
+          backgroundColor: '#FFFFFF',
+          borderRadius: 24,
+          overflow: 'hidden',
+        }}
+      >
+        <View className="flex-row items-center justify-between px-4 py-2">
+          <Pressable
+            onPress={() => router.back()}
+            className="w-10 h-10 items-center justify-center"
+            accessibilityLabel={t('common.close')}
+          >
+            <X size={24} color="#0F172A" />
+          </Pressable>
+          <View className="w-10" />
+        </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         <View className="items-center pt-2 pb-3">
           <Text className="text-ink-mute text-base">
             {fmtDate(start)} – {fmtDate(today)}
@@ -177,7 +199,8 @@ export default function WeekRecapScreen(): JSX.Element {
             </Text>
           </Pressable>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </View>
+    </View>
   );
 }

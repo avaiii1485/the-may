@@ -108,6 +108,17 @@ async function pullProfile(userId: string): Promise<void> {
   if (isDefaultGoal && remote.goal && remote.goal !== localGoal) {
     useLocalMealsStore.getState().setGoal(remote.goal);
   }
+
+  // Adopt the cloud insight card order only when this device has no custom order
+  // yet (empty) — a device that has dragged keeps its own arrangement.
+  const cloudOrder = remote.prefs.insightOrder;
+  if (
+    Array.isArray(cloudOrder) &&
+    cloudOrder.length > 0 &&
+    usePinnedInsightsStore.getState().order.length === 0
+  ) {
+    usePinnedInsightsStore.getState().setOrder(cloudOrder);
+  }
 }
 
 // Push-only for now: this device's profile state wins. (Multi-device profile
@@ -124,6 +135,7 @@ async function pushProfile(userId: string): Promise<void> {
     prefs: {
       pinnedInsights: usePinnedInsightsStore.getState().pinned,
       seenBadges: useSeenBadgesStore.getState().seen,
+      insightOrder: usePinnedInsightsStore.getState().order,
     },
   });
 }

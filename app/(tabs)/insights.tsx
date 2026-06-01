@@ -1,7 +1,11 @@
 import { router } from 'expo-router';
 import { CalendarDays, Clock, Lightbulb, Sparkles } from 'lucide-react-native';
-import { type ReactNode } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useCallback, type ReactNode } from 'react';
+import { Pressable, Text, View } from 'react-native';
+import DraggableFlatList, {
+  ScaleDecorator,
+  type RenderItemParams,
+} from 'react-native-draggable-flatlist';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CollapsibleCard } from '@/components/common/CollapsibleCard';
 import { CalendarHeatmap } from '@/components/insights/CalendarHeatmap';
@@ -17,6 +21,8 @@ import { useMeals } from '@/hooks/useMeals';
 import { useI18n } from '@/i18n';
 import { useInsights } from '@/hooks/useInsights';
 import { useGoal } from '@/hooks/useProfile';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { triggerSync } from '@/lib/sync';
 import { usePinnedInsightsStore } from '@/stores/pinnedInsightsStore';
 
 interface CardDef {
@@ -33,6 +39,8 @@ export default function InsightsScreen(): JSX.Element {
   const { goal } = useGoal();
   const { data: allMeals } = useMeals();
   const pinned = usePinnedInsightsStore((s) => s.pinned);
+  const savedOrder = usePinnedInsightsStore((s) => s.order);
+  const setOrder = usePinnedInsightsStore((s) => s.setOrder);
 
   const topWhy = insights.whyEatSlices[0];
   const totalWhy = insights.whyEatSlices.reduce((s, x) => s + x.value, 0);
@@ -171,67 +179,91 @@ export default function InsightsScreen(): JSX.Element {
     });
   }
 
-  // Pinned first (in pin order — most recently pinned at the very top),
-  // then everything else in its natural order.
-  const pinnedCards = pinned
-    .map((pid) => cards.find((c) => c.id === pid))
-    .filter((c): c is CardDef => Boolean(c));
-  const restCards = cards.filter((c) => !pinned.includes(c.id));
-  const ordered = [...pinnedCards, ...restCards];
+  // Effective display order: the user's saved drag order when present (with any
+  // cards missing from it — new/conditional ones — appended), otherwise the
+  // natural pinned-first order.
+  const naturalOrder = [
+    ...pinned.map((pid) => cards.find((c) => c.id === pid)).filter((c): c is CardDef => Boolean(c)),
+    ...cards.filter((c) => !pinned.includes(c.id)),
+  ];
+  const items: CardDef[] =
+    savedOrder.length > 0
+      ? [
+          ...savedOrder.map((oid) => cards.find((c) => c.id === oid)).filter((c): c is CardDef => Boolean(c)),
+          ...cards.filter((c) => !savedOrder.includes(c.id)),
+        ]
+      : naturalOrder;
+
+  const renderItem = useCallback(
+    ({ item, drag, isActive }: RenderItemParams<CardDef>) => (
+      <ScaleDecorator>
+        <View className="px-4" style={{ opacity: isActive ? 0.9 : 1 }}>
+          <CollapsibleCard
+            id={item.id}
+            title={item.title}
+            variant={item.variant}
+            leftAdornment={item.leftAdornment}
+            onLongPress={drag}
+          >
+            {item.content}
+          </CollapsibleCard>
+        </View>
+      </ScaleDecorator>
+    ),
+    [],
+  );
+
+  const Header = (
+    <View className="items-center pt-8 pb-4 px-6">
+      <Text className="text-ink-mute text-xs uppercase tracking-widest">{t('ins.myGoal')}</Text>
+      <Text className="text-ink text-xl font-bold mt-1 text-center">{tv('focus', goal)}</Text>
+      <Pressable
+        onPress={() => router.push('/settings')}
+        className="mt-4 px-6 py-2 rounded-full border border-bubble-active flex-row items-center justify-center"
+        style={{ width: 240 }}
+        accessibilityRole="button"
+        accessibilityLabel={t('ins.tryExperiment')}
+      >
+        <Text className="text-bubble-active font-bold text-sm tracking-widest">
+          {t('ins.tryExperiment')}
+        </Text>
+      </Pressable>
+      <Pressable
+        onPress={() => router.push('/week-recap')}
+        className="mt-3 px-6 py-2 rounded-full bg-bubble-active flex-row items-center justify-center"
+        style={{ width: 240 }}
+        accessibilityRole="button"
+        accessibilityLabel={t('ins.weeklyRecap')}
+      >
+        <CalendarDays size={16} color="#FFFFFF" />
+        <Text className="text-white font-bold text-sm tracking-widest ml-2">
+          {t('ins.weeklyRecap')}
+        </Text>
+      </Pressable>
+    </View>
+  );
+
+  const Footer =
+    insights.weekMealCount === 0 ? (
+      <View className="items-center py-12">
+        <Text className="text-ink-soft text-center px-8">{t('ins.emptyPatterns')}</Text>
+      </View>
+    ) : null;
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        <View className="items-center pt-8 pb-4 px-6">
-          <Text className="text-ink-mute text-xs uppercase tracking-widest">
-            {t('ins.myGoal')}
-          </Text>
-          <Text className="text-ink text-xl font-bold mt-1 text-center">{tv('focus', goal)}</Text>
-          <Pressable
-            onPress={() => router.push('/settings')}
-            className="mt-4 px-6 py-2 rounded-full border border-bubble-active flex-row items-center justify-center"
-            style={{ width: 240 }}
-            accessibilityRole="button"
-            accessibilityLabel={t('ins.tryExperiment')}
-          >
-            <Text className="text-bubble-active font-bold text-sm tracking-widest">
-              {t('ins.tryExperiment')}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => router.push('/week-recap')}
-            className="mt-3 px-6 py-2 rounded-full bg-bubble-active flex-row items-center justify-center"
-            style={{ width: 240 }}
-            accessibilityRole="button"
-            accessibilityLabel={t('ins.weeklyRecap')}
-          >
-            <CalendarDays size={16} color="#FFFFFF" />
-            <Text className="text-white font-bold text-sm tracking-widest ml-2">
-              {t('ins.weeklyRecap')}
-            </Text>
-          </Pressable>
-        </View>
-
-        <View className="px-4">
-          {ordered.map((c) => (
-            <CollapsibleCard
-              key={c.id}
-              id={c.id}
-              title={c.title}
-              variant={c.variant}
-              leftAdornment={c.leftAdornment}
-            >
-              {c.content}
-            </CollapsibleCard>
-          ))}
-
-          {insights.weekMealCount === 0 ? (
-            <View className="items-center py-12">
-              <Text className="text-ink-soft text-center px-8">{t('ins.emptyPatterns')}</Text>
-            </View>
-          ) : null}
-        </View>
-      </ScrollView>
+      <DraggableFlatList
+        data={items}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        onDragEnd={({ data }) => {
+          setOrder(data.map((c) => c.id));
+          if (isSupabaseConfigured) triggerSync();
+        }}
+        ListHeaderComponent={Header}
+        ListFooterComponent={Footer}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      />
     </SafeAreaView>
   );
 }

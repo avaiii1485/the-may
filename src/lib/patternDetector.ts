@@ -123,7 +123,7 @@ function buildSentence(
         body = `${shownFa}٪ از وعده‌های ${optFa()} ${wordFa} بود`;
         break;
       case 'why':
-        body = `وقتی به‌خاطر «${optFa()}» غذا خوردی، ${shownFa}٪ مواقع ${wordFa} بودی`;
+        body = `وقتی دلیل غذا خوردنت رو «${optFa()}» انتخاب کردی، ${shownFa}٪ مواقع ${wordFa} بودی`;
         break;
       case 'dow': {
         const idx = DAY_NAMES.indexOf(value as (typeof DAY_NAMES)[number]);

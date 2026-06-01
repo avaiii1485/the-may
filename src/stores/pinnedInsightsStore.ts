@@ -18,25 +18,39 @@ const storage = createJSONStorage(() =>
 );
 
 // Pre-pinned so the default Insights layout matches what users already have.
-// Order is most-recent-first; newly pinned cards are prepended.
 const DEFAULT_PINNED = ['top-insight', 'fasting', 'todays-experiment', 'last-12-weeks'];
 
 interface PinnedState {
   pinned: string[];
+  /**
+   * User-defined display order of insight card ids (drag-and-drop result).
+   * Empty means "no custom order yet" — the screen falls back to its natural
+   * order. A fresh device adopts the cloud order via the sync engine.
+   */
+  order: string[];
   toggle: (id: string) => void;
+  /** Replace the full card order (from a drag reorder). */
+  setOrder: (ids: string[]) => void;
 }
 
 export const usePinnedInsightsStore = create<PinnedState>()(
   persist(
     (set) => ({
       pinned: DEFAULT_PINNED,
+      order: [],
+      // Pinning also hoists the card to the front of the order; unpinning leaves
+      // its position alone. Drag-and-drop then gives full manual control.
       toggle: (id) =>
-        set((s) => ({
-          pinned: s.pinned.includes(id)
-            ? s.pinned.filter((x) => x !== id)
-            : [id, ...s.pinned],
-        })),
+        set((s) => {
+          const isPinned = s.pinned.includes(id);
+          if (isPinned) {
+            return { pinned: s.pinned.filter((x) => x !== id) };
+          }
+          const order = s.order.length > 0 ? [id, ...s.order.filter((x) => x !== id)] : s.order;
+          return { pinned: [id, ...s.pinned], order };
+        }),
+      setOrder: (ids) => set({ order: ids }),
     }),
-    { name: 'the-may-pinned-v1', storage },
+    { name: 'the-may-pinned-v2', storage },
   ),
 );

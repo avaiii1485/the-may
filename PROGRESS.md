@@ -60,6 +60,12 @@ Two native-module changes batched into the next `eas build`:
 
 **To activate:** (1) run `0003_login_events.sql` in Supabase SQL editor; (2) `eas build -p android --profile preview` + reinstall.
 
+### Insights-tab changes (2026-05-26, OTA-able JS — ride the next APK build)
+- **Meatball menu:** CollapsibleCard dots are now horizontal (`MoreHorizontal`); Pin/Unpin is a compact floating dropdown (top-right, tap-outside to dismiss) instead of the inline panel.
+- **Drag-and-drop sorting:** insights cards render via `react-native-draggable-flatlist` (JS-only, on reanimated+gesture-handler). Long-press a card title to drag; tap still expands. Order persists in `pinnedInsightsStore` (bumped to `-v2`, added `order: string[]` + `setOrder`; pin hoists to front) and syncs to the account via `prefs.insightOrder` (pushProfile pushes it; pullProfile adopts cloud order when local order is empty). ⚠️ Web drag is best-effort via draggable-flatlist — verify the Insights tab still renders on web before pushing live.
+- **Recaps are dialogs:** day-recap + week-recap use `presentation: 'transparentModal'` + centered card on a dimmed tap-to-dismiss backdrop (maxHeight 88%, internal scroll) instead of full-screen.
+- **Farsi "why" insight wording:** patternDetector `why` template → «وقتی دلیل غذا خوردنت رو X انتخاب کردی...».
+
 ### Bug fixes (2026-05-26, OTA-able JS — also ride the next APK build)
 - **Farsi "why I ate" donut legend** now translates option labels via `tv('opt', …)` (was showing raw English). Other insight cards already translated.
 - **Blank-meals-on-new-device root cause:** `syncNow` ran push→pull in one try block, so a failing `pushProfile` skipped `pullMeals` → fresh-device login showed nothing. Rewrote: each phase isolated (`runPhase`), and **pull before push**. Added `pullProfile` (adopt cloud values where local is empty/default) so a new device picks up name/goal instead of overwriting cloud with blanks. NOTE: this fixes the case where meals ARE in the cloud under the account id. The separate "log into a *different existing* account from anonymous → orphaned meals" gap (merge-on-signup) is still unbuilt.

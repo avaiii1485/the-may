@@ -75,7 +75,7 @@ html[lang='fa'], html[lang='fa'] * { font-family:'Samim', system-ui, -apple-syst
               />
               <Stack.Screen
                 name="day-recap/[date]"
-                options={{ presentation: 'modal', headerShown: false }}
+                options={{ presentation: 'transparentModal', headerShown: false, animation: 'fade' }}
               />
               <Stack.Screen
                 name="profile"
@@ -83,7 +83,7 @@ html[lang='fa'], html[lang='fa'] * { font-family:'Samim', system-ui, -apple-syst
               />
               <Stack.Screen
                 name="week-recap"
-                options={{ presentation: 'modal', headerShown: false }}
+                options={{ presentation: 'transparentModal', headerShown: false, animation: 'fade' }}
               />
               <Stack.Screen
                 name="badges"
