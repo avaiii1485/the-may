@@ -18,7 +18,8 @@ function toLocalIso(d: Date): string {
   const dd = String(d.getDate()).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
   const min = String(d.getMinutes()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}T${hh}:${min}:00`;
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
 }
 
 function parseValue(iso: string): Date {
@@ -58,7 +59,8 @@ export function DateTimeRow({ value, onChange }: Props): JSX.Element {
     if (mode === 'date') {
       next.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
     } else {
-      next.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
+      // Keep the existing seconds so same-minute ordering is preserved.
+      next.setHours(selected.getHours(), selected.getMinutes());
     }
     onChange(toLocalIso(next));
   };

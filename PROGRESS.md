@@ -39,6 +39,11 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
+## Seconds timestamps + camera flip + RTL recap overflow (2026-06-02)
+- **Seconds in timestamps:** `nowIso()` (capture-form, text-meal) no longer zeroes seconds; DateTimeRow (web + native) preserves seconds when editing HH:MM. So same-minute entries order correctly (stored locally + in `eaten_at`). UI still shows HH:MM only.
+- **Camera flip:** Capture tab `CameraView` uses a `facing` state with a SwitchCamera button (top-right of the frame) to toggle back/front.
+- **RTL recap overflow:** day-recap + week-recap stat rows (and profile stats) now use `flex-1` columns + centered, `adjustsFontSizeToFit`/`numberOfLines={2}` text so long Persian fasting/frequency strings wrap inside the card instead of overflowing.
+
 ## Auth: Google + forgot-password + tailored errors (2026-06-02)
 - **Tailored errors:** `authErrorKey()` maps Supabase auth errors to specific i18n strings (wrong creds, email taken, not confirmed, invalid email, weak password, rate limit, network, provider-not-enabled, cancelled) + client-side email-format check. Works now, no setup.
 - **Forgot password:** `resetPassword()` sends a reset email; PASSWORD_RECOVERY event → `authStore.recovery` → Path opens /auth which shows a "set new password" screen (`updatePassword`). Web-complete; native email-link deep-link is a follow-up. Uses Supabase built-in email (configure SMTP for production).

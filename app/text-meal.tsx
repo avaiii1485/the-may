@@ -8,9 +8,8 @@ import { useI18n } from '@/i18n';
 import { useCaptureDraftStore } from '@/stores/captureDraftStore';
 
 function nowIso(): string {
-  const d = new Date();
-  d.setSeconds(0, 0);
-  return d.toISOString();
+  // Keep seconds so same-minute entries order correctly; UI shows only HH:MM.
+  return new Date().toISOString();
 }
 
 export default function TextMealScreen(): JSX.Element {

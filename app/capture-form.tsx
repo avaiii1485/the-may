@@ -14,9 +14,9 @@ import { useCaptureDraftStore } from '@/stores/captureDraftStore';
 import type { DraftMeal } from '@/types/meal';
 
 function nowIso(): string {
-  const d = new Date();
-  d.setSeconds(0, 0);
-  return d.toISOString();
+  // Keep full precision (incl. seconds) so meals logged in the same minute order
+  // correctly. The UI still displays only HH:MM.
+  return new Date().toISOString();
 }
 
 export default function CaptureFormScreen(): JSX.Element {

@@ -155,22 +155,28 @@ export default function WeekRecapScreen(): JSX.Element {
 
           <DayCollage meals={weekMeals} />
 
-          <View className="flex-row justify-around py-5 bg-white">
-            <View className="items-center">
-              <Text className="text-ink text-xl font-extrabold">{dg(total)}</Text>
-              <Text className="text-path-dark text-xs tracking-widest font-bold mt-1">
+          <View className="flex-row py-5 bg-white">
+            <View className="flex-1 items-center px-1">
+              <Text className="text-ink text-lg font-extrabold text-center" numberOfLines={2} adjustsFontSizeToFit>
+                {dg(total)}
+              </Text>
+              <Text className="text-path-dark text-xs tracking-widest font-bold mt-1 text-center">
                 {t('recap.meals')}
               </Text>
             </View>
-            <View className="items-center">
-              <Text className="text-ink text-xl font-extrabold">{dg(pct)}%</Text>
-              <Text className="text-path-dark text-xs tracking-widest font-bold mt-1">
+            <View className="flex-1 items-center px-1">
+              <Text className="text-ink text-lg font-extrabold text-center" numberOfLines={2} adjustsFontSizeToFit>
+                {dg(pct)}%
+              </Text>
+              <Text className="text-path-dark text-xs tracking-widest font-bold mt-1 text-center">
                 {t('recap.onPath')}
               </Text>
             </View>
-            <View className="items-center">
-              <Text className="text-ink text-xl font-extrabold">{dg(uniqueDays)}</Text>
-              <Text className="text-path-dark text-xs tracking-widest font-bold mt-1">
+            <View className="flex-1 items-center px-1">
+              <Text className="text-ink text-lg font-extrabold text-center" numberOfLines={2} adjustsFontSizeToFit>
+                {dg(uniqueDays)}
+              </Text>
+              <Text className="text-path-dark text-xs tracking-widest font-bold mt-1 text-center">
                 {t('recap.daysLogged')}
               </Text>
             </View>

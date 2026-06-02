@@ -308,22 +308,22 @@ export default function ProfileScreen(): JSX.Element {
           </View>
         ) : null}
 
-        <View className="flex-row justify-around py-5 border-b border-slate-100">
-          <View className="items-center">
+        <View className="flex-row py-5 border-b border-slate-100">
+          <View className="flex-1 items-center px-1">
             <Text className="text-ink text-2xl font-extrabold">{d(stats.total)}</Text>
-            <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1">
+            <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1 text-center">
               {t('profile.meals')}
             </Text>
           </View>
-          <View className="items-center">
+          <View className="flex-1 items-center px-1">
             <Text className="text-ink text-2xl font-extrabold">{d(stats.pct)}%</Text>
-            <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1">
+            <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1 text-center">
               {t('profile.onPath')}
             </Text>
           </View>
-          <View className="items-center">
+          <View className="flex-1 items-center px-1">
             <Text className="text-ink text-2xl font-extrabold">{d(stats.uniqueDays)}</Text>
-            <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1">
+            <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1 text-center">
               {t('profile.daysLogged')}
             </Text>
           </View>

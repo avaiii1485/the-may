@@ -2,7 +2,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { ImageIcon, Type, X, Zap, ZapOff } from 'lucide-react-native';
+import { ImageIcon, SwitchCamera, Type, X, Zap, ZapOff } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ export default function CaptureScreen(): JSX.Element {
   const setPhotoUri = useCaptureDraftStore((s) => s.setPhotoUri);
   const reset = useCaptureDraftStore((s) => s.reset);
   const [flash, setFlash] = useState(false);
+  const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [busy, setBusy] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
@@ -94,12 +95,32 @@ export default function CaptureScreen(): JSX.Element {
       <View className="flex-1 items-center justify-center px-4">
         <View className="aspect-square w-full max-w-[420px] rounded-2xl overflow-hidden border border-white/30 bg-black/40 items-center justify-center">
           {granted && isFocused ? (
-            <CameraView
-              ref={cameraRef}
-              style={StyleSheet.absoluteFill}
-              facing="back"
-              enableTorch={flash}
-            />
+            <>
+              <CameraView
+                ref={cameraRef}
+                style={StyleSheet.absoluteFill}
+                facing={facing}
+                enableTorch={flash}
+              />
+              <Pressable
+                onPress={() => setFacing((f) => (f === 'back' ? 'front' : 'back'))}
+                style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: 'rgba(0,0,0,0.45)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t('capture.flipCamera')}
+              >
+                <SwitchCamera size={22} color="#FFFFFF" />
+              </Pressable>
+            </>
           ) : granted ? (
             <View className="flex-1" />
           ) : (

@@ -17,8 +17,11 @@ function isoToParts(iso: string): { date: string; time: string } {
   return { date: `${yyyy}-${mm}-${dd}`, time: `${hh}:${min}` };
 }
 
-function partsToIso(date: string, time: string): string {
-  return `${date}T${time}:00`;
+// Preserve the existing seconds so same-minute entries keep a distinct order
+// (the <input type=time> only edits HH:MM).
+function partsToIso(date: string, time: string, seconds: number): string {
+  const ss = String(seconds).padStart(2, '0');
+  return `${date}T${time}:${ss}`;
 }
 
 const inputStyle = {
@@ -34,16 +37,18 @@ const inputStyle = {
 export function DateTimeRow({ value, onChange }: Props): JSX.Element {
   const { t } = useI18n();
   const { date, time } = isoToParts(value);
+  const parsed = new Date(value);
+  const seconds = isNaN(parsed.getTime()) ? 0 : parsed.getSeconds();
   const dateInput = createElement('input', {
     type: 'date',
     value: date,
-    onChange: (e: ChangeEvent<HTMLInputElement>) => onChange(partsToIso(e.target.value, time)),
+    onChange: (e: ChangeEvent<HTMLInputElement>) => onChange(partsToIso(e.target.value, time, seconds)),
     style: inputStyle,
   });
   const timeInput = createElement('input', {
     type: 'time',
     value: time,
-    onChange: (e: ChangeEvent<HTMLInputElement>) => onChange(partsToIso(date, e.target.value)),
+    onChange: (e: ChangeEvent<HTMLInputElement>) => onChange(partsToIso(date, e.target.value, seconds)),
     style: inputStyle,
   });
   return (
