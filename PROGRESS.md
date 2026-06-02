@@ -39,6 +39,11 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
+## Account data integrity + sync-status (2026-06-02)
+- **Claim local/anon meals on sign-in:** `src/lib/mealClaim.ts` `claimLocalMeals(from,to)` re-assigns meals owned by `local-user` or an anonymous uid to the account being signed into (fresh ids, enqueue creates, trigger sync). Called from `auth.tsx` `applyUser()` on signIn/signUp/Google when the previous uid was local-user or anonymous. Covers both the anon→existing-account merge and the local-user→real-account migration. (Meals owned by a different real account are left alone.)
+- **Sync-status pill:** `syncStatusStore` (syncing flag set by `syncNow`) + `SyncStatus` component on the Path tab — shows Saving… / Offline / Syncing soon / Synced when signed into a cloud account. i18n en/fa.
+- Both OTA-able JS (no new native deps).
+
 ## Recap share options: text vs picture-collage + tagline (2026-06-02)
 - Tapping "Share your day/week" now opens a `ShareChoice` overlay: **Text only** (existing message) or **With pictures** (captures the recap card — collage + stats + tagline — as a PNG and shares the image). Both append an app tagline (`share.tagline`).
 - `src/lib/shareRecap.ts`: `shareText` (web navigator.share/clipboard, native Share) and `shareCardImage` (react-native-view-shot `captureRef` → web navigator.share-with-file/download, native expo-sharing). Image share falls back to text on failure.

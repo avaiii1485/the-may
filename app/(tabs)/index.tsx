@@ -2,6 +2,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SyncStatus } from '@/components/common/SyncStatus';
 import { BadgeCelebration } from '@/components/path/BadgeCelebration';
 import { DaySection } from '@/components/path/DaySection';
 import { EmptyDayPlaceholder } from '@/components/path/EmptyDayPlaceholder';
@@ -63,6 +64,7 @@ export default function PathScreen(): JSX.Element {
     <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
       <BadgeCelebration />
       <PathHeader goal={goal} />
+      <SyncStatus />
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={{ paddingBottom: 40, flexGrow: 1, justifyContent: 'flex-end' }}

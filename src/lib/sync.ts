@@ -14,6 +14,7 @@ import { useOutboxStore, type MealPatch } from '@/stores/outboxStore';
 import { usePinnedInsightsStore } from '@/stores/pinnedInsightsStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSeenBadgesStore } from '@/stores/seenBadgesStore';
+import { useSyncStatusStore } from '@/stores/syncStatusStore';
 import type { Meal } from '@/types/meal';
 
 // Local-first sync engine. The meals store is the source of truth the UI renders;
@@ -181,6 +182,7 @@ async function runPhase(name: string, fn: () => Promise<void>): Promise<void> {
 export async function syncNow(): Promise<void> {
   if (running || !canSync()) return;
   running = true;
+  useSyncStatusStore.getState().setSyncing(true);
   const userId = useAuthStore.getState().userId;
   // Pull before push: a fresh device must show the account's data immediately,
   // and pulling the profile first prevents an empty local profile from
@@ -190,6 +192,7 @@ export async function syncNow(): Promise<void> {
   await runPhase('pushOutbox', () => pushOutbox(userId));
   await runPhase('pushProfile', () => pushProfile(userId));
   running = false;
+  useSyncStatusStore.getState().setSyncing(false);
 }
 
 // Debounced trigger for write paths and event listeners.

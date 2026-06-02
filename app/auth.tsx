@@ -12,8 +12,26 @@ import {
   signUp,
   updatePassword,
 } from '@/services/auth';
-import { useAuthStore } from '@/stores/authStore';
+import { claimLocalMeals } from '@/lib/mealClaim';
+import { LOCAL_USER_ID, useAuthStore } from '@/stores/authStore';
 import { useAuthPromptStore } from '@/stores/authPromptStore';
+
+interface AuthedUserLite {
+  id: string;
+  email: string | null;
+  isAnonymous: boolean;
+}
+
+// Applies the signed-in user and claims any local/anonymous meals into the new
+// account, so a user logging in keeps the meals they logged beforehand.
+function applyUser(user: AuthedUserLite): void {
+  const prevId = useAuthStore.getState().userId;
+  const prevAnon = useAuthStore.getState().isAnonymous;
+  useAuthStore.getState().setUser(user.id, user.email, user.isAnonymous);
+  if (user.id !== prevId && (prevId === LOCAL_USER_ID || prevAnon)) {
+    claimLocalMeals(prevId, user.id);
+  }
+}
 
 type Mode = 'signup' | 'login';
 
@@ -58,7 +76,7 @@ export default function AuthScreen(): JSX.Element {
       const user = mode === 'signup' ? await signUp(e, password) : await signIn(e, password);
       // Apply auth state synchronously so the Path tab doesn't briefly see
       // "logged out" and re-open this screen (the bounce-on-first-login bug).
-      if (user) useAuthStore.getState().setUser(user.id, user.email, user.isAnonymous);
+      if (user) applyUser(user);
       close();
     } catch (err) {
       setError(t(authErrorKey(err, mode)));
@@ -73,7 +91,7 @@ export default function AuthScreen(): JSX.Element {
     try {
       const user = await signInWithGoogle();
       if (user) {
-        useAuthStore.getState().setUser(user.id, user.email, user.isAnonymous);
+        applyUser(user);
         close();
       }
       // On web the page redirects; nothing else to do here.
