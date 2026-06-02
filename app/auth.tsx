@@ -4,6 +4,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from '@/i18n';
 import { continueAnonymously, signIn, signUp } from '@/services/auth';
+import { useAuthStore } from '@/stores/authStore';
 import { useAuthPromptStore } from '@/stores/authPromptStore';
 
 type Mode = 'signup' | 'login';
@@ -38,8 +39,10 @@ export default function AuthScreen(): JSX.Element {
     }
     setBusy(true);
     try {
-      if (mode === 'signup') await signUp(e, password);
-      else await signIn(e, password);
+      const user = mode === 'signup' ? await signUp(e, password) : await signIn(e, password);
+      // Apply auth state synchronously so the Path tab doesn't briefly see
+      // "logged out" and re-open this screen (the bounce-on-first-login bug).
+      if (user) useAuthStore.getState().setUser(user.id, user.email, user.isAnonymous);
       close();
     } catch (err) {
       console.warn('[auth] form error:', err instanceof Error ? err.message : String(err));
