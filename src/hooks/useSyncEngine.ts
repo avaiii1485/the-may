@@ -48,9 +48,10 @@ export function useSyncEngine(): void {
       if (state === 'active') triggerSync();
     });
 
-    // Slow retry while anything is still queued.
+    // Periodic sync: drains any queued ops AND pulls server changes (profile,
+    // meals) so a device left open catches up with edits made on another device.
     const interval = setInterval(() => {
-      if (useOutboxStore.getState().ops.length > 0) void syncNow();
+      void syncNow();
     }, RETRY_INTERVAL_MS);
 
     return () => {

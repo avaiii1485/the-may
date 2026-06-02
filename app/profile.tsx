@@ -1,7 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { Camera, Check, X } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/common/Avatar';
@@ -57,7 +57,7 @@ export default function ProfileScreen(): JSX.Element {
 
   const openSignIn = () => router.push('/auth');
 
-  const [form, setForm] = useState<ProfileData>({
+  const snapshot = (): ProfileData => ({
     avatarUri: profile.avatarUri,
     preferredName: profile.preferredName,
     handle: profile.handle,
@@ -67,8 +67,14 @@ export default function ProfileScreen(): JSX.Element {
     joinedAt: profile.joinedAt,
   });
 
+  const [form, setForm] = useState<ProfileData>(snapshot);
+  // Last store values the form was synced from — used to tell apart the user's
+  // own edits from a background sync (so a cross-device update doesn't wipe
+  // in-progress typing, but a fresh login's pulled profile still shows up).
+  const lastStore = useRef<ProfileData>(snapshot());
+
   useEffect(() => {
-    setForm({
+    const incoming: ProfileData = {
       avatarUri: profile.avatarUri,
       preferredName: profile.preferredName,
       handle: profile.handle,
@@ -76,6 +82,11 @@ export default function ProfileScreen(): JSX.Element {
       email: profile.email,
       bio: profile.bio,
       joinedAt: profile.joinedAt,
+    };
+    setForm((cur) => {
+      const userEdited = JSON.stringify(cur) !== JSON.stringify(lastStore.current);
+      lastStore.current = incoming;
+      return userEdited ? cur : incoming;
     });
   }, [
     profile.avatarUri,

@@ -28,7 +28,13 @@ export interface ProfileData {
 }
 
 interface ProfileState extends ProfileData {
+  /** True when there are local profile edits not yet pushed to the server. */
+  dirty: boolean;
+  /** User edit — marks the profile dirty so the sync engine pushes it. */
   update: (patch: Partial<ProfileData>) => void;
+  /** Server -> local: apply remote values without dirtying (won't be pushed back). */
+  adopt: (patch: Partial<ProfileData>) => void;
+  clearDirty: () => void;
 }
 
 const initial: ProfileData = {
@@ -45,8 +51,31 @@ export const useProfileStore = create<ProfileState>()(
   persist(
     (set) => ({
       ...initial,
-      update: (patch) => set((s) => ({ ...s, ...patch })),
+      dirty: false,
+      update: (patch) => set((s) => ({ ...s, ...patch, dirty: true })),
+      adopt: (patch) =>
+        set((s) => {
+          // Skip if nothing actually changed, to avoid needless re-renders/sync.
+          const changed = (Object.keys(patch) as (keyof ProfileData)[]).some(
+            (k) => patch[k] !== undefined && patch[k] !== s[k],
+          );
+          return changed ? { ...s, ...patch } : s;
+        }),
+      clearDirty: () => set({ dirty: false }),
     }),
-    { name: 'the-may-profile-v1', storage },
+    {
+      name: 'the-may-profile-v2',
+      storage,
+      // dirty is runtime-only; don't persist it.
+      partialize: (s) => ({
+        avatarUri: s.avatarUri,
+        preferredName: s.preferredName,
+        handle: s.handle,
+        phoneNumber: s.phoneNumber,
+        email: s.email,
+        bio: s.bio,
+        joinedAt: s.joinedAt,
+      }),
+    },
   ),
 );

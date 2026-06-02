@@ -6,7 +6,7 @@ import {
   remoteUpsertMeal,
 } from '@/services/meals';
 import { getProfile, upsertProfile } from '@/services/profile';
-import { uploadMealPhoto } from '@/services/storage';
+import { uploadAvatar, uploadMealPhoto } from '@/services/storage';
 import { useAuthStore, LOCAL_USER_ID } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useLocalMealsStore } from '@/stores/localMealsStore';
@@ -22,6 +22,8 @@ import type { Meal } from '@/types/meal';
 
 let running = false;
 let debounce: ReturnType<typeof setTimeout> | null = null;
+// Avoids re-writing unchanged settings on every periodic sync.
+let lastPushedSettings: string | null = null;
 
 function isLocalUri(url: string | null): url is string {
   return !!url && !/^https?:\/\//i.test(url);
@@ -87,30 +89,33 @@ async function pullMeals(userId: string): Promise<void> {
   useLocalMealsStore.getState().replaceUserMeals(userId, merged);
 }
 
-// Pull the account's profile from the cloud and adopt cloud values where the
-// local field is empty/default — i.e. a fresh device picks up your name, goal,
-// etc., while a device where you've already edited keeps its edits. The
-// "local non-empty wins" rule + diffing avoids clobbering and sync loops.
+// Pull the account's profile and adopt it as the source of truth — UNLESS this
+// device has unsaved local edits (dirty), in which case the local edit wins and
+// will be pushed. This makes profile fields (name, handle, bio, phone, avatar,
+// join date) match across all devices: a change on one device is adopted by the
+// others on their next sync.
 async function pullProfile(userId: string): Promise<void> {
   const remote = await getProfile(userId);
   if (!remote) return;
 
   const ps = useProfileStore.getState();
-  const patch: Partial<{ preferredName: string; handle: string; bio: string; phoneNumber: string }> = {};
-  if (!ps.preferredName && remote.preferredName) patch.preferredName = remote.preferredName;
-  if (!ps.handle && remote.handle) patch.handle = remote.handle;
-  if (!ps.bio && remote.bio) patch.bio = remote.bio;
-  if (!ps.phoneNumber && remote.phoneNumber) patch.phoneNumber = remote.phoneNumber;
-  if (Object.keys(patch).length > 0) ps.update(patch);
+  if (!ps.dirty) {
+    ps.adopt({
+      preferredName: remote.preferredName,
+      handle: remote.handle ?? '',
+      bio: remote.bio,
+      phoneNumber: remote.phoneNumber,
+      avatarUri: remote.avatarUrl,
+      joinedAt: remote.createdAt, // join date is the account's creation time
+    });
+  }
 
+  // Goal / card order: adopt when this device hasn't customized them.
   const localGoal = useLocalMealsStore.getState().goal;
   const isDefaultGoal = !localGoal || localGoal === 'Feeling happy and healthy';
   if (isDefaultGoal && remote.goal && remote.goal !== localGoal) {
     useLocalMealsStore.getState().setGoal(remote.goal);
   }
-
-  // Adopt the cloud insight card order only when this device has no custom order
-  // yet (empty) — a device that has dragged keeps its own arrangement.
   const cloudOrder = remote.prefs.insightOrder;
   if (
     Array.isArray(cloudOrder) &&
@@ -121,15 +126,8 @@ async function pullProfile(userId: string): Promise<void> {
   }
 }
 
-// Push-only for now: this device's profile state wins. (Multi-device profile
-// pull/merge is a future refinement; push-only guarantees offline edits aren't lost.)
 async function pushProfile(userId: string): Promise<void> {
-  const p = useProfileStore.getState();
-  await upsertProfile(userId, {
-    preferredName: p.preferredName,
-    handle: p.handle || null,
-    bio: p.bio,
-    phoneNumber: p.phoneNumber,
+  const settings = {
     goal: useLocalMealsStore.getState().goal,
     lang: useLanguageStore.getState().lang,
     prefs: {
@@ -137,7 +135,36 @@ async function pushProfile(userId: string): Promise<void> {
       seenBadges: useSeenBadgesStore.getState().seen,
       insightOrder: usePinnedInsightsStore.getState().order,
     },
+  };
+
+  const ps = useProfileStore.getState();
+  if (!ps.dirty) {
+    // No local profile edits: only sync settings, and only when they changed.
+    const key = JSON.stringify(settings);
+    if (key !== lastPushedSettings) {
+      await upsertProfile(userId, settings);
+      lastPushedSettings = key;
+    }
+    return;
+  }
+
+  // Local profile edits win: upload a freshly-picked avatar, then push everything.
+  let avatarUrl = ps.avatarUri;
+  if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
+    avatarUrl = await uploadAvatar(userId, avatarUrl);
+    if (avatarUrl) useProfileStore.getState().adopt({ avatarUri: avatarUrl });
+  }
+  await upsertProfile(userId, {
+    ...settings,
+    preferredName: ps.preferredName,
+    handle: ps.handle || null,
+    bio: ps.bio,
+    phoneNumber: ps.phoneNumber,
+    email: ps.email || null,
+    avatarUrl: avatarUrl ?? null,
   });
+  lastPushedSettings = JSON.stringify(settings);
+  useProfileStore.getState().clearDirty();
 }
 
 async function runPhase(name: string, fn: () => Promise<void>): Promise<void> {

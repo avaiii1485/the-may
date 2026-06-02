@@ -39,6 +39,10 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
+## Multi-device profile sync + native photo-upload fix (2026-06-02)
+- **Full two-way profile sync:** server is source of truth; a device adopts the account profile on pull unless it has unsaved edits (`profileStore.dirty`); editing pushes + clears dirty. Avatar now uploads to the `avatars` bucket (`uploadAvatar`) and syncs as a URL; join date = account `created_at`; name/handle/bio/phone sync. Periodic `syncNow` (~20s) + focus/foreground so open devices catch up. profile.tsx form guards against background-sync clobbering in-progress edits. `profileStore` bumped to `-v2` (added dirty; partialize excludes dirty). `services/profile.ts` upsertProfile now takes a partial patch (settings-only vs full) and getProfile returns avatarUrl + createdAt. Settings push de-duped via `lastPushedSettings`.
+- **🐞 Mobile→web sync bug FIXED (root cause):** `uploadMealPhoto`/`uploadAvatar` used `fetch(uri).blob()`, which fails on React Native for `file://` camera URIs (empty/failed blob) → the photo upload threw → the meal row (photo AND its Q&A) never inserted → web never saw mobile photo meals (web→mobile worked since web URIs are data:/blob:). Fix: platform-aware `readUpload` — web uses fetch/blob; native reads base64 via `expo-file-system` and uploads an ArrayBuffer (`base64-arraybuffer`). New native dep `expo-file-system` → needs an APK rebuild.
+
 ## UI/UX batch (2026-06-01)
 - **Sage green** (`#7FA37B`) replaces the brand blue (`#1FB6E5`) app-wide (bubble.active, accent.blue, donut/badge palettes, chevrons).
 - **Creamy theme:** soft cream app bg (`cream` token `#FCF6EE`) on all main screens; warm off-white cards (`bg.card` `#FFFCF7`); tab bar warm surface + orange active tint.

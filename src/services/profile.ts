@@ -14,9 +14,11 @@ export interface RemoteProfile {
   handle: string | null;
   bio: string;
   phoneNumber: string;
+  avatarUrl: string | null;
   goal: string;
   lang: string;
   prefs: ProfilePrefs;
+  createdAt: string;
 }
 
 function rowToProfile(r: ProfileRow): RemoteProfile {
@@ -28,9 +30,11 @@ function rowToProfile(r: ProfileRow): RemoteProfile {
     handle: r.handle,
     bio: r.bio ?? '',
     phoneNumber: r.phone_number ?? '',
+    avatarUrl: r.avatar_url,
     goal: r.goal ?? '',
     lang: r.lang,
     prefs,
+    createdAt: r.created_at,
   };
 }
 
@@ -45,20 +49,32 @@ export async function getProfile(userId: string): Promise<RemoteProfile | null> 
   return data ? rowToProfile(data) : null;
 }
 
-// Avatar is intentionally not synced yet — it can be a large base64 data: URI on
-// web, which doesn't belong in a table row. Wire an 'avatars' Storage upload first.
-export async function upsertProfile(userId: string, p: RemoteProfile): Promise<void> {
+// Fields that may be written. Only provided keys are upserted, so a settings-only
+// push doesn't clobber profile fields a newer device may have set, and vice versa.
+export interface ProfilePatch {
+  preferredName?: string;
+  handle?: string | null;
+  bio?: string;
+  phoneNumber?: string;
+  avatarUrl?: string | null;
+  email?: string | null;
+  goal?: string;
+  lang?: string;
+  prefs?: ProfilePrefs;
+}
+
+export async function upsertProfile(userId: string, patch: ProfilePatch): Promise<void> {
   if (!supabase) throw new Error('Supabase not configured');
-  // `as never`: see the note in services/meals.ts on the typed-client null issue.
-  const { error } = await supabase.from('profiles').upsert({
-    id: userId,
-    preferred_name: p.preferredName || null,
-    handle: p.handle || null,
-    bio: p.bio || null,
-    phone_number: p.phoneNumber || null,
-    goal: p.goal || null,
-    lang: p.lang,
-    prefs: p.prefs,
-  } as never);
+  const row: Record<string, unknown> = { id: userId };
+  if ('preferredName' in patch) row.preferred_name = patch.preferredName || null;
+  if ('handle' in patch) row.handle = patch.handle || null;
+  if ('bio' in patch) row.bio = patch.bio || null;
+  if ('phoneNumber' in patch) row.phone_number = patch.phoneNumber || null;
+  if ('avatarUrl' in patch) row.avatar_url = patch.avatarUrl || null;
+  if ('email' in patch) row.email = patch.email || null;
+  if ('goal' in patch) row.goal = patch.goal || null;
+  if ('lang' in patch) row.lang = patch.lang;
+  if ('prefs' in patch) row.prefs = patch.prefs;
+  const { error } = await supabase.from('profiles').upsert(row as never);
   if (error) throw error;
 }
