@@ -1,11 +1,13 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Share2, X } from 'lucide-react-native';
-import { useCallback, useMemo } from 'react';
-import { Alert, Platform, Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DayCollage } from '@/components/recap/DayCollage';
+import { ShareChoice } from '@/components/recap/ShareChoice';
 import { useI18n } from '@/i18n';
 import { useMeals } from '@/hooks/useMeals';
+import { shareCardImage, shareText } from '@/lib/shareRecap';
 import {
   computeFasting,
   dayHeaderParts,
@@ -38,6 +40,9 @@ export default function DayRecapScreen(): JSX.Element {
       .sort((a, b) => new Date(a.eatenAt).getTime() - new Date(b.eatenAt).getTime());
   }, [meals, date]);
 
+  const cardRef = useRef<View>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+
   if (!date) {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -56,7 +61,7 @@ export default function DayRecapScreen(): JSX.Element {
   const freq = formatFrequency(dayMeals, lang) ?? '—';
   const fasting = computeFasting(dayMeals, meals, lang) ?? '—';
 
-  const onShare = useCallback(async () => {
+  const buildMessage = (): string => {
     const lines = [
       `${t('recap.trackedWith')} — ${full}`,
       `${dg(pct)}% ${t('path.onPath')} · ${dg(dayMeals.length)} ${
@@ -65,38 +70,31 @@ export default function DayRecapScreen(): JSX.Element {
     ];
     if (fasting !== '—') lines.push(`${t('recap.fasting')}: ${fasting}`);
     if (freq !== '—') lines.push(`${t('path.frequency')}: ${freq}`);
-    const message = lines.join('\n');
-    const title = `The May · ${full}`;
+    lines.push('', t('share.tagline'));
+    return lines.join('\n');
+  };
+  const title = `The May · ${full}`;
 
+  const onShareText = async () => {
+    setShareOpen(false);
     try {
-      if (Platform.OS === 'web') {
-        const nav = typeof navigator !== 'undefined' ? navigator : undefined;
-        const shareData = { title, text: message } as ShareData;
-        if (nav?.share && (!nav.canShare || nav.canShare(shareData))) {
-          await nav.share(shareData);
-          return;
-        }
-        if (nav?.clipboard?.writeText) {
-          await nav.clipboard.writeText(message);
-          if (typeof window !== 'undefined') {
-            window.alert(message);
-          }
-          return;
-        }
-        if (typeof window !== 'undefined') {
-          window.alert(message);
-        }
-        return;
-      }
-      // Native (iOS / Android): bring up the OS share sheet.
-      await Share.share({ title, message });
-    } catch (e) {
-      // The user dismissed the share sheet, or the platform refused. Don't crash.
-      if (e instanceof Error && e.name !== 'AbortError') {
-        Alert.alert('Could not share', e.message);
+      await shareText(title, buildMessage());
+    } catch {
+      // dismissed / unsupported
+    }
+  };
+  const onShareImage = async () => {
+    setShareOpen(false);
+    try {
+      await shareCardImage(cardRef, title, buildMessage());
+    } catch {
+      try {
+        await shareText(title, buildMessage());
+      } catch {
+        // ignore
       }
     }
-  }, [full, pct, dayMeals.length, fasting, freq, t, dg]);
+  };
 
   return (
     <View
@@ -155,8 +153,12 @@ export default function DayRecapScreen(): JSX.Element {
           </View>
         </View>
 
-        {/* Recap card */}
-        <View className="mx-4 rounded-2xl overflow-hidden bg-white border border-slate-200">
+        {/* Recap card (also captured as the shareable image) */}
+        <View
+          ref={cardRef}
+          collapsable={false}
+          className="mx-4 rounded-2xl overflow-hidden bg-white border border-slate-200"
+        >
           <View className="items-center py-4 px-4">
             <Text className="text-ink text-base font-bold">{full}</Text>
             <Text className="text-ink-mute text-xs mt-1">{t('recap.trackedWith')}</Text>
@@ -199,12 +201,16 @@ export default function DayRecapScreen(): JSX.Element {
               </Text>
             </View>
           </View>
+
+          <Text className="text-ink-mute text-[11px] text-center pb-4 px-4">
+            {t('share.tagline')}
+          </Text>
         </View>
 
         {/* Share button */}
         <View className="px-4 mt-6">
           <Pressable
-            onPress={onShare}
+            onPress={() => setShareOpen(true)}
             className="flex-row items-center justify-center bg-bubble-active rounded-full py-4"
             accessibilityRole="button"
             accessibilityLabel={t('recap.shareDay')}
@@ -217,6 +223,13 @@ export default function DayRecapScreen(): JSX.Element {
         </View>
         </ScrollView>
       </View>
+
+      <ShareChoice
+        visible={shareOpen}
+        onTextOnly={onShareText}
+        onWithPictures={onShareImage}
+        onClose={() => setShareOpen(false)}
+      />
     </View>
   );
 }

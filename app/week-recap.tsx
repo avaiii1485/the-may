@@ -1,12 +1,14 @@
 import { router } from 'expo-router';
 import { Share2, X } from 'lucide-react-native';
-import { useCallback, useMemo } from 'react';
-import { Alert, Platform, Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { DayCollage } from '@/components/recap/DayCollage';
+import { ShareChoice } from '@/components/recap/ShareChoice';
 import { toJalali } from '@/lib/jalali';
 import { useI18n } from '@/i18n';
 import { useMeals } from '@/hooks/useMeals';
 import { detectInsights } from '@/lib/patternDetector';
+import { shareCardImage, shareText } from '@/lib/shareRecap';
 import { addDays, startOfDay } from '@/lib/time';
 
 const MONTHS_EN = [
@@ -54,7 +56,10 @@ export default function WeekRecapScreen(): JSX.Element {
     return ins[0]?.text ?? null;
   }, [weekMeals, lang]);
 
-  const onShare = useCallback(async () => {
+  const cardRef = useRef<View>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+
+  const buildMessage = (): string => {
     const lines = [
       `${t('recap.trackedWith')} — ${fmtDate(start)} – ${fmtDate(today)}`,
       `${dg(pct)}% ${t('path.onPath')} · ${dg(total)} ${
@@ -62,33 +67,31 @@ export default function WeekRecapScreen(): JSX.Element {
       }`,
     ];
     if (topInsight) lines.push(topInsight);
-    const message = lines.join('\n');
-    const title = `The May · ${fmtDate(start)}–${fmtDate(today)}`;
+    lines.push('', t('share.tagline'));
+    return lines.join('\n');
+  };
+  const title = `The May · ${fmtDate(start)}–${fmtDate(today)}`;
+
+  const onShareText = async () => {
+    setShareOpen(false);
     try {
-      if (Platform.OS === 'web') {
-        const nav = typeof navigator !== 'undefined' ? navigator : undefined;
-        const shareData = { title, text: message } as ShareData;
-        if (nav?.share && (!nav.canShare || nav.canShare(shareData))) {
-          await nav.share(shareData);
-          return;
-        }
-        if (nav?.clipboard?.writeText) {
-          await nav.clipboard.writeText(message);
-          if (typeof window !== 'undefined') {
-            window.alert(message);
-          }
-          return;
-        }
-        if (typeof window !== 'undefined') window.alert(message);
-        return;
-      }
-      await Share.share({ title, message });
-    } catch (e) {
-      if (e instanceof Error && e.name !== 'AbortError') {
-        Alert.alert('Could not share', e.message);
+      await shareText(title, buildMessage());
+    } catch {
+      // dismissed / unsupported
+    }
+  };
+  const onShareImage = async () => {
+    setShareOpen(false);
+    try {
+      await shareCardImage(cardRef, title, buildMessage());
+    } catch {
+      try {
+        await shareText(title, buildMessage());
+      } catch {
+        // ignore
       }
     }
-  }, [start, today, pct, total, topInsight, t, dg, fmtDate]);
+  };
 
   return (
     <View
@@ -147,7 +150,11 @@ export default function WeekRecapScreen(): JSX.Element {
           </View>
         </View>
 
-        <View className="mx-4 rounded-2xl overflow-hidden bg-white border border-slate-200">
+        <View
+          ref={cardRef}
+          collapsable={false}
+          className="mx-4 rounded-2xl overflow-hidden bg-white border border-slate-200"
+        >
           <View className="items-center py-4 px-4">
             <Text className="text-ink text-base font-bold">{t('recap.weekly')}</Text>
             <Text className="text-ink-mute text-xs mt-1">{t('recap.trackedWith')}</Text>
@@ -183,18 +190,22 @@ export default function WeekRecapScreen(): JSX.Element {
           </View>
 
           {topInsight ? (
-            <View className="px-4 pb-4">
+            <View className="px-4 pb-2">
               <Text className="text-[10px] uppercase tracking-widest text-ink-mute mb-1">
                 {t('recap.topInsight')}
               </Text>
               <Text className="text-ink text-sm font-semibold">{topInsight}</Text>
             </View>
           ) : null}
+
+          <Text className="text-ink-mute text-[11px] text-center pb-4 px-4">
+            {t('share.tagline')}
+          </Text>
         </View>
 
         <View className="px-4 mt-6">
           <Pressable
-            onPress={onShare}
+            onPress={() => setShareOpen(true)}
             className="flex-row items-center justify-center bg-bubble-active rounded-full py-4"
             accessibilityRole="button"
             accessibilityLabel={t('recap.shareWeek')}
@@ -207,6 +218,13 @@ export default function WeekRecapScreen(): JSX.Element {
         </View>
         </ScrollView>
       </View>
+
+      <ShareChoice
+        visible={shareOpen}
+        onTextOnly={onShareText}
+        onWithPictures={onShareImage}
+        onClose={() => setShareOpen(false)}
+      />
     </View>
   );
 }

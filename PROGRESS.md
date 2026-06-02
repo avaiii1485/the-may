@@ -39,6 +39,11 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
+## Recap share options: text vs picture-collage + tagline (2026-06-02)
+- Tapping "Share your day/week" now opens a `ShareChoice` overlay: **Text only** (existing message) or **With pictures** (captures the recap card — collage + stats + tagline — as a PNG and shares the image). Both append an app tagline (`share.tagline`).
+- `src/lib/shareRecap.ts`: `shareText` (web navigator.share/clipboard, native Share) and `shareCardImage` (react-native-view-shot `captureRef` → web navigator.share-with-file/download, native expo-sharing). Image share falls back to text on failure.
+- Recap cards wrapped with a ref + `collapsable={false}`; tagline rendered in-card so it's in the captured image. New native deps `react-native-view-shot`, `expo-sharing` → APK rebuild. Also removed the recap `useCallback`s (fixed the two long-standing lint warnings).
+
 ## Seconds timestamps + camera flip + RTL recap overflow (2026-06-02)
 - **Seconds in timestamps:** `nowIso()` (capture-form, text-meal) no longer zeroes seconds; DateTimeRow (web + native) preserves seconds when editing HH:MM. So same-minute entries order correctly (stored locally + in `eaten_at`). UI still shows HH:MM only.
 - **Camera flip:** Capture tab `CameraView` uses a `facing` state with a SwitchCamera button (top-right of the frame) to toggle back/front.
