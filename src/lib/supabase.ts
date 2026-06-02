@@ -17,6 +17,9 @@ export const supabase: SupabaseClient<Database> | null = isSupabaseConfigured
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: Platform.OS === 'web',
+        // PKCE so OAuth (Google) returns a code we can exchange for a session,
+        // which works for both web redirect and the native browser flow.
+        flowType: 'pkce',
       },
     })
   : null;

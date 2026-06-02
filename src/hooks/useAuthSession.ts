@@ -22,8 +22,11 @@ export function useAuthSession(): void {
     const client = supabase;
     let active = true;
 
-    const { data: sub } = client.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = client.auth.onAuthStateChange((event, session) => {
       if (!active) return;
+      if (event === 'PASSWORD_RECOVERY') {
+        useAuthStore.getState().setRecovery(true);
+      }
       if (session?.user) {
         setUser(session.user.id, session.user.email ?? null, session.user.is_anonymous ?? false);
         triggerSync();

@@ -25,6 +25,7 @@ export default function PathScreen(): JSX.Element {
   // skipped. Presented once per session; logout re-opens it explicitly.
   const accountEmail = useAuthStore((s) => s.email);
   const authInitialized = useAuthStore((s) => s.initialized);
+  const authRecovery = useAuthStore((s) => s.recovery);
   const authDismissed = useAuthPromptStore((s) => s.dismissed);
   const promptedRef = useRef(false);
   useEffect(() => {
@@ -34,6 +35,11 @@ export default function PathScreen(): JSX.Element {
       router.push('/auth');
     }
   }, [authInitialized, accountEmail, authDismissed]);
+
+  // Arriving from a password-reset link: open the auth screen to set a new password.
+  useEffect(() => {
+    if (authRecovery) router.push('/auth');
+  }, [authRecovery]);
 
   // groupMealsByDay returns desc (newest first). Reverse so the timeline reads
   // oldest → newest from top to bottom of the scroll, with today at the bottom.
