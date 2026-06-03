@@ -39,6 +39,10 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
+## Wheel date/time picker (2026-06-03)
+- Replaced the slider DateTimeRow with iOS-style **wheel pickers**: `src/components/capture/Wheel.tsx` (pure-JS ScrollView drum — momentum + manual snap, infinite wrap-around loop via repeated copies + recenter, center highlight band, tap-to-edit numeric, haptic on each value change). `DateTimeRow` = Date wheel (recent days) + Hour (00–23 loop) + Minute (00–59 loop), default device now, keeps seconds.
+- **Haptics:** web `navigator.vibrate`; native `expo-haptics` lazily required + guarded → OTA-safe (native haptics activate after the NEXT rebuild; everything else ships via `eas update`).
+
 ## Native crash + ordering + date sliders (2026-06-03) — OTA via `eas update`
 - **FIXED Insights crash (app exits on native):** root cause = `babel.config.js` has `reanimated: false`, so `react-native-draggable-flatlist` (Reanimated worklets) crashed the native app on the Insights tab. Native `InsightsCardList.tsx` rewritten to a plain ScrollView list (no Reanimated). Web keeps HTML5 drag. (Restoring native drag would need enabling Reanimated + a rebuild.)
 - **Same-minute ordering:** `groupMealsByDay` within-day sort now tiebreaks on `createdAt` (full ms) when `eatenAt` ties.
