@@ -39,6 +39,12 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
+## Native crash + ordering + date sliders (2026-06-03) — OTA via `eas update`
+- **FIXED Insights crash (app exits on native):** root cause = `babel.config.js` has `reanimated: false`, so `react-native-draggable-flatlist` (Reanimated worklets) crashed the native app on the Insights tab. Native `InsightsCardList.tsx` rewritten to a plain ScrollView list (no Reanimated). Web keeps HTML5 drag. (Restoring native drag would need enabling Reanimated + a rebuild.)
+- **Same-minute ordering:** `groupMealsByDay` within-day sort now tiebreaks on `createdAt` (full ms) when `eatenAt` ties.
+- **Date/time sliders:** `DateTimeRow` rewritten as one universal (web+native) pure-JS component — a date slider + 24h time slider (default device now) with ◀▶ steppers; deleted `DateTimeRow.web.tsx`. Applies to capture-form, text-meal, meal edit. Keeps seconds.
+- All pure-JS → deliverable to the installed phone build via `eas update --branch preview` (the build's channel is "preview"), NO rebuild needed. `@react-native-community/datetimepicker` now unused.
+
 ## Account data integrity + sync-status (2026-06-02)
 - **Claim local/anon meals on sign-in:** `src/lib/mealClaim.ts` `claimLocalMeals(from,to)` re-assigns meals owned by `local-user` or an anonymous uid to the account being signed into (fresh ids, enqueue creates, trigger sync). Called from `auth.tsx` `applyUser()` on signIn/signUp/Google when the previous uid was local-user or anonymous. Covers both the anon→existing-account merge and the local-user→real-account migration. (Meals owned by a different real account are left alone.)
 - **Sync-status pill:** `syncStatusStore` (syncing flag set by `syncNow`) + `SyncStatus` component on the Path tab — shows Saving… / Offline / Syncing soon / Synced when signed into a cloud account. i18n en/fa.

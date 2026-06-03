@@ -24,8 +24,14 @@ export function groupMealsByDay(meals: Meal[]): DayGroup[] {
     }
   }
   // Oldest within day first (so the path reads top→bottom in time order).
+  // Tie-break on createdAt (always full-precision) so meals logged in the same
+  // minute still order by when they were actually logged.
   for (const g of groups.values()) {
-    g.meals.sort((a, b) => new Date(a.eatenAt).getTime() - new Date(b.eatenAt).getTime());
+    g.meals.sort((a, b) => {
+      const byEaten = new Date(a.eatenAt).getTime() - new Date(b.eatenAt).getTime();
+      if (byEaten !== 0) return byEaten;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
   }
   // Most recent day at the top.
   return Array.from(groups.values()).sort((a, b) => b.date.getTime() - a.date.getTime());

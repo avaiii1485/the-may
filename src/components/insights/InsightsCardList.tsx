@@ -1,49 +1,32 @@
-import { useCallback } from 'react';
-import { View } from 'react-native';
-import DraggableFlatList, {
-  ScaleDecorator,
-  type RenderItemParams,
-} from 'react-native-draggable-flatlist';
+import { ScrollView, View } from 'react-native';
 import { CollapsibleCard } from '@/components/common/CollapsibleCard';
-import type { InsightCard, InsightsCardListProps } from './insightCard';
+import type { InsightsCardListProps } from './insightCard';
 
-// Native (iOS/Android): long-press a card title to drag-reorder; tap still
-// expands. Web uses a separate HTML5 implementation (.web.tsx) because
-// draggable-flatlist's reanimated scroll handler crashes under react-native-web.
-export function InsightsCardList({
-  items,
-  header,
-  footer,
-  onReorder,
-}: InsightsCardListProps): JSX.Element {
-  const renderItem = useCallback(
-    ({ item, drag, isActive }: RenderItemParams<InsightCard>) => (
-      <ScaleDecorator>
-        <View className="px-4" style={{ opacity: isActive ? 0.9 : 1 }}>
+// Native: a plain ordered list. We intentionally do NOT use
+// react-native-draggable-flatlist here — it relies on Reanimated worklets, and
+// this project builds with the Reanimated babel plugin disabled
+// (babel.config.js `reanimated: false`), which made worklets crash the app when
+// the Insights tab opened. Cards still render in the user's saved order (set via
+// drag on web). Restoring native drag would require enabling Reanimated + an
+// APK rebuild.
+export function InsightsCardList({ items, header, footer }: InsightsCardListProps): JSX.Element {
+  return (
+    <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+      {header}
+      <View className="px-4">
+        {items.map((item) => (
           <CollapsibleCard
+            key={item.id}
             id={item.id}
             title={item.title}
             variant={item.variant}
             leftAdornment={item.leftAdornment}
-            onLongPress={drag}
           >
             {item.content}
           </CollapsibleCard>
-        </View>
-      </ScaleDecorator>
-    ),
-    [],
-  );
-
-  return (
-    <DraggableFlatList
-      data={items}
-      keyExtractor={(item) => item.id}
-      renderItem={renderItem}
-      onDragEnd={({ data }) => onReorder(data.map((c) => c.id))}
-      ListHeaderComponent={header as React.ComponentProps<typeof DraggableFlatList>['ListHeaderComponent']}
-      ListFooterComponent={footer as React.ComponentProps<typeof DraggableFlatList>['ListFooterComponent']}
-      contentContainerStyle={{ paddingBottom: 40 }}
-    />
+        ))}
+      </View>
+      {footer}
+    </ScrollView>
   );
 }
