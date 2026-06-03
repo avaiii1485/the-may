@@ -39,6 +39,11 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
+## Restore native drag-to-reorder via Reanimated (2026-06-03) — ⚠️ REBUILD ONLY
+- Re-enabled Reanimated: `babel.config.js` adds `react-native-reanimated/plugin` as the LAST plugin (preset stays `reanimated:false` to control ordering vs css-interop). Restored `DraggableFlatList` in native `InsightsCardList.tsx`.
+- **⚠️ MUST ship via `eas build` (rebuild), NOT `eas update`.** OTA-ing this to the pre-Reanimated build re-introduces the Insights crash. After the rebuild installs, future OTAs are safe (Reanimated baked in).
+- After rebuild, verify: Insights opens (no crash), long-press a card to drag-reorder, and NativeWind styling still renders correctly (the one compat risk).
+
 ## Wheel date/time picker (2026-06-03)
 - Replaced the slider DateTimeRow with iOS-style **wheel pickers**: `src/components/capture/Wheel.tsx` (pure-JS ScrollView drum — momentum + manual snap, infinite wrap-around loop via repeated copies + recenter, center highlight band, tap-to-edit numeric, haptic on each value change). `DateTimeRow` = Date wheel (recent days) + Hour (00–23 loop) + Minute (00–59 loop), default device now, keeps seconds.
 - **Haptics:** web `navigator.vibrate`; native `expo-haptics` lazily required + guarded → OTA-safe (native haptics activate after the NEXT rebuild; everything else ships via `eas update`).
