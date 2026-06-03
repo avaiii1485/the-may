@@ -16,28 +16,6 @@ const PAD = ITEM_H * Math.floor(VISIBLE / 2);
 const LOOP_COPIES = 3; // rendered copies for the wrap-around illusion
 const MID = Math.floor(LOOP_COPIES / 2);
 
-// Haptic on each value change. Web uses navigator.vibrate; native uses
-// expo-haptics, lazily required + guarded so the OTA bundle never crashes on a
-// build that doesn't yet include the native module (haptics activate after the
-// next rebuild).
-function haptic(): void {
-  if (Platform.OS === 'web') {
-    try {
-      (navigator as unknown as { vibrate?: (n: number) => void }).vibrate?.(4);
-    } catch {
-      /* no-op */
-    }
-    return;
-  }
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const H = require('expo-haptics');
-    H.selectionAsync?.();
-  } catch {
-    /* native module not present yet */
-  }
-}
-
 interface Props {
   data: string[];
   index: number;
@@ -52,7 +30,6 @@ export function Wheel({ data, index, onIndexChange, loop = false, width = 64, pa
   const scrollRef = useRef<ScrollView>(null);
   const dragging = useRef(false);
   const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastTick = useRef(index);
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState('');
 
@@ -87,11 +64,6 @@ export function Wheel({ data, index, onIndexChange, loop = false, width = 64, pa
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = e.nativeEvent.contentOffset.y;
-    const logical = logicalAt(y);
-    if (logical !== lastTick.current) {
-      lastTick.current = logical;
-      haptic();
-    }
     // Cross-platform "scroll stopped" detection (web has no momentum event).
     if (stopTimer.current) clearTimeout(stopTimer.current);
     stopTimer.current = setTimeout(() => settle(y), 140);
