@@ -17,23 +17,18 @@ function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }
 
+// Falls back to the device's current time when the value is unreadable.
 function parseValue(iso: string): Date {
   const d = new Date(iso);
   return isNaN(d.getTime()) ? new Date() : d;
 }
 
-// Local ISO with seconds preserved (keeps same-minute ordering precise).
-function toIso(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-}
-
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
-// Date + time entry as iOS-style wheel pickers (default = device now). Date is a
-// bounded wheel of recent days; hour/minute loop (wrap-around). Shared across
-// every meal date/time entry point.
+// Date + time entry as iOS-style wheel pickers. Displays/edits in the device's
+// local time (synced to the system clock) and stores a UTC ISO instant
+// (toISOString) so the cloud round-trip is timezone-safe.
 export function DateTimeRow({ value, onChange }: Props): JSX.Element {
   const { t } = useI18n();
   const d = parseValue(value);
@@ -51,26 +46,17 @@ export function DateTimeRow({ value, onChange }: Props): JSX.Element {
     const dt = addDays(today, -(DAYS_BACK - i));
     const nd = new Date(d);
     nd.setFullYear(dt.getFullYear(), dt.getMonth(), dt.getDate());
-    onChange(toIso(nd));
+    onChange(nd.toISOString());
   };
   const setHour = (h: number) => {
     const nd = new Date(d);
     nd.setHours(clamp(h, 0, 23));
-    onChange(toIso(nd));
+    onChange(nd.toISOString());
   };
   const setMinute = (m: number) => {
     const nd = new Date(d);
     nd.setMinutes(clamp(m, 0, 59));
-    onChange(toIso(nd));
-  };
-
-  const parseHour = (txt: string): number | null => {
-    const n = parseInt(txt, 10);
-    return isNaN(n) ? null : clamp(n, 0, 23);
-  };
-  const parseMinute = (txt: string): number | null => {
-    const n = parseInt(txt, 10);
-    return isNaN(n) ? null : clamp(n, 0, 59);
+    onChange(nd.toISOString());
   };
 
   const height = VISIBLE * ITEM_H;
@@ -79,12 +65,12 @@ export function DateTimeRow({ value, onChange }: Props): JSX.Element {
   return (
     <View>
       <View className="flex-row items-center justify-between mb-1">
-        <Text className="text-xs uppercase tracking-widest text-ink-mute">{t('datetime.date')}</Text>
-        <Text className="text-xs uppercase tracking-widest text-ink-mute">{t('datetime.time')}</Text>
+        <Text className="text-[10px] uppercase tracking-widest text-ink-mute">{t('datetime.date')}</Text>
+        <Text className="text-[10px] uppercase tracking-widest text-ink-mute">{t('datetime.time')}</Text>
       </View>
 
       <View style={{ height }}>
-        {/* Center selection band (drawn under the wheels) */}
+        {/* Center selection band */}
         <View
           pointerEvents="none"
           style={{
@@ -97,29 +83,15 @@ export function DateTimeRow({ value, onChange }: Props): JSX.Element {
             borderTopWidth: 1,
             borderBottomWidth: 1,
             borderColor: 'rgba(127,163,123,0.45)',
-            borderRadius: 8,
+            borderRadius: 6,
           }}
         />
         <View className="flex-row items-center justify-center">
-          <Wheel data={dayLabels} index={dateIndex} onIndexChange={setDateIndex} width={140} />
-          <View style={{ width: 16 }} />
-          <Wheel
-            data={HOURS}
-            index={d.getHours()}
-            onIndexChange={setHour}
-            loop
-            width={52}
-            parseInput={parseHour}
-          />
-          <Text className="text-ink text-xl font-bold mx-1">:</Text>
-          <Wheel
-            data={MINUTES}
-            index={d.getMinutes()}
-            onIndexChange={setMinute}
-            loop
-            width={52}
-            parseInput={parseMinute}
-          />
+          <Wheel data={dayLabels} index={dateIndex} onIndexChange={setDateIndex} width={118} />
+          <View style={{ width: 10 }} />
+          <Wheel data={HOURS} index={d.getHours()} onIndexChange={setHour} loop width={42} />
+          <Text className="text-ink text-base font-bold mx-0.5">:</Text>
+          <Wheel data={MINUTES} index={d.getMinutes()} onIndexChange={setMinute} loop width={42} />
         </View>
       </View>
     </View>

@@ -39,6 +39,13 @@ Refactored the app to **local-first with an offline outbox**:
 - typecheck: only the 1 known pre-existing error (MoodBySourceCard:49) remains; the two
   profile.ts ones are gone. Changed files lint-clean.
 
+## Wheel fixes: scroll, glitch, timezone, size (2026-06-04) — OTA
+- **Couldn't scroll (Android):** wheel ScrollView was nested in the form ScrollView with no `nestedScrollEnabled` → outer ate the drag. Added `nestedScrollEnabled`.
+- **Glitch / wrong time:** removed per-item tap-to-edit (`onPress` on items) — blocked-scroll drags were registering as taps and opening the edit input. Value now commits only when scrolling fully stops (never mid-drag / never while a finger is down).
+- **Timezone:** `DateTimeRow` now stores a UTC instant (`toISOString`, was a mixed local-no-Z string) and displays in device-local time → matches the device clock; cloud round-trip safe. Default/fallback = device now.
+- **Smaller:** ITEM_H 40→30, fonts 24/20→17/14, narrower columns.
+- Verified wheel wrap-around math + date index + time round-trip via a Node test (26/26). Pure JS → ships via `eas update` (no rebuild).
+
 ## Restore native drag-to-reorder via Reanimated (2026-06-03) — ⚠️ REBUILD ONLY
 - Re-enabled Reanimated: `babel.config.js` adds `react-native-reanimated/plugin` as the LAST plugin (preset stays `reanimated:false` to control ordering vs css-interop). Restored `DraggableFlatList` in native `InsightsCardList.tsx`.
 - **⚠️ MUST ship via `eas build` (rebuild), NOT `eas update`.** OTA-ing this to the pre-Reanimated build re-introduces the Insights crash. After the rebuild installs, future OTAs are safe (Reanimated baked in).
