@@ -51,7 +51,6 @@
         "backgroundColor": "#F0E7D6"
       },
       "permissions": [
-        "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA"
       ]
     },
@@ -62,6 +61,9 @@
       "eas": {
         "projectId": "8110698b-35bf-4179-b4e7-de5b4decf364"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8110698b-35bf-4179-b4e7-de5b4decf364"
     }
   }
 }
