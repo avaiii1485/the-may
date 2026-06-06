@@ -1,7 +1,56 @@
 # PROGRESS.md
 
 ## Last Updated
-2026-05-26
+2026-06-04
+
+---
+# ⭐ HANDOFF / CURRENT STATE (2026-06-04) — read this first
+Everything below the divider is detailed history; this block is the live state.
+
+## Repo / deploy
+- Git HEAD = **`75a9375`** ("Rewrite wheel as a PanResponder drum"), `main` is in sync with `origin/main`. Nothing uncommitted.
+- **Vercel web app is LIVE and fully current** (auto-deploys from `main`): https://the-may-seven.vercel.app
+- GitHub: https://github.com/avaiii1485/the-may  · Supabase project ref `lobvpaqhgephjyeiupng` · Expo account `ava8y`, EAS projectId `8110698b-35bf-4179-b4e7-de5b4decf364`.
+- `.env.local` (gitignored) holds the Supabase URL + anon key. Same keys are set as EAS env vars (all 3 envs) and in Vercel.
+
+## 🔴 CRITICAL discovery: OTA updates were NOT reaching the phone
+- Symptom: user kept seeing OLD date/time picker behavior (tap-to-type, "00" reset) that was removed two wheel-versions ago. → The installed APK has **never received any `eas update`**.
+- **Root cause:** `app.json` was missing `expo.updates.url`, so the last APK build did **not** have OTA enabled — the phone only ever runs the JS **baked into the APK at build time**. Every `eas update` I published went to the web/Expo server but the app never fetched it.
+- **FIXED in config:** `app.json` now has `"updates": { "url": "https://u.expo.dev/8110698b-35bf-4179-b4e7-de5b4decf364" }` (committed). **BUT this only takes effect after the NEXT `eas build`.** Until a fresh build is installed, OTA does nothing for this device.
+- **Consequence / mental model going forward:** the **currently installed APK was built from commit `3dc5923`** ("Restore native drag-to-reorder"), so the phone is running: Reanimated enabled, native DraggableFlatList on Insights, and **wheel v1 (ScrollView + tap-to-edit, the buggy one)**. All wheel fixes since (`090726e`, `75a9375`) are on web + git but NOT on the phone.
+- **THE NEXT REQUIRED ACTION IS A REBUILD** (`eas build -p android --profile preview`). That rebuild (a) ships all the JS fixes, and (b) finally enables OTA so future JS-only changes reach the phone via `eas update --branch preview`.
+
+## ⏳ UNRESOLVED — date/time picker (user wants to change it AGAIN)
+The custom wheel has failed repeatedly on Android. Current code (`75a9375`) is a PanResponder drum (`src/components/capture/Wheel.tsx` + `src/components/capture/DateTimeRow.tsx`) — untested on device. User's reported bugs (on the OLD baked v1, but the approach is the concern):
+1. Dragging the wheel scrolls the **page** away (nested-scroll / gesture conflict).
+2. Tap-to-type isn't digit-limited (need max 2 digits, hour 00–23, minute 00–59) — **NOTE: v3/PanResponder already removed tap-to-type entirely.**
+3. Typing then "Done" sets value to "00" even if unchanged.
+4. A random time gets logged and can't be fixed.
+5. **Farsi date months are NOT Solar-Hijri (Jalali)** — must show Jalali months on the FA side (we have `src/lib/jalali.ts`).
+- **I asked the user to choose (AskUserQuestion) — they interrupted/rejected and have NOT chosen yet.** The two options on the table:
+  - **A) Native OS picker** (`@react-native-community/datetimepicker`, already installed) — rock-solid on Android (it's the OS picker), correct validation/timezone, no scroll conflicts; but Android shows a clock/calendar (not a drum) and can't pick in Jalali (would show the chosen date as a Jalali *label* only).
+  - **B) Drum via a maintained library** (e.g. `@quidone/react-native-wheel-picker`, Reanimated is now enabled) + my wrapper for hour/minute/date with Jalali on FA — gives the iOS drum look but riskier (can't device-test).
+- **Why web works but Android fails:** the custom wheel is a scroll-area inside the form's scroll-area; browsers nest scrollers fine, Android makes them fight and the page wins. PLUS the OTA issue above meant fixes never reached the phone.
+- **Next session: get the user's A-vs-B choice, implement it, REBUILD.** My recommendation leaned A (reliability) but user wants the drum look — confirm.
+
+## Timezone requirement (from user)
+- Times must sync to the **device system clock**; default/ fallback **GMT+3:30** (Iran). Current code stores a UTC instant (`toISOString`) and displays device-local — correct IF the device tz is right. If the phone still shows a wrong time after rebuild, force +3:30 explicitly (not yet done).
+
+## Activation checklist (Supabase dashboard — status)
+- ✅ Migrations run in Supabase: `0001`, `0002`, `0003_login_events.sql`, `0004_add_question_options.sql` (all confirmed run by user).
+- ✅ Anonymous sign-ins enabled. ✅ Google provider configured (Google Cloud OAuth client + Supabase Google enabled + Redirect URLs: vercel origin, http://localhost:8081, `themay://auth-callback`; Site URL set to the vercel app). Google login **works**.
+- ⚠️ Google app is in **testing** mode → only added **test users** can sign in (user added themselves). "Publish" later for public.
+- ⚠️ Email confirmation is OFF (fine for now; turn ON + custom SMTP for production).
+- 🔒 The leaked Google **Client Secret** appeared in a screenshot — recommend rotating it (Google Cloud → Clients → reset secret → repaste in Supabase). Not blocking.
+
+## Pending native deps that need the rebuild to activate on phone
+All in `package.json` already; baked in only on next build: `@react-native-community/datetimepicker`, `expo-device`, `expo-file-system`, `base64-arraybuffer`, `expo-web-browser`, `react-native-view-shot`, `expo-sharing`, plus the **Reanimated babel plugin** (already in the installed `3dc5923` build) and `react-native-draggable-flatlist`. (`expo-haptics` was removed.)
+
+## Health
+- `npm run typecheck`: clean except the 1 known pre-existing error (`MoodBySourceCard.tsx:49`). `npm run lint`: clean.
+- Quick OTA reminder: after a build that has `updates.url`, ship JS-only changes with `eas update --branch preview`; native changes (new modules, icon, permissions, babel) need `eas build`.
+
+---
 
 ## Completed in Recent Sessions
 - Full English / Persian bilingual: `src/i18n/{strings,index}.ts`, `useI18n` hook, every screen routed through `t` / `tv`, RTL via `document.dir` + per-paragraph rules, Profile language toggle, Persian font Samim loaded via runtime-injected `@font-face` + `html[lang='fa'] *` `!important` rule (`app/_layout.tsx`).
