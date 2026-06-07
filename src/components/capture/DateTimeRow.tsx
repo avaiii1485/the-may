@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 import { useI18n } from '@/i18n';
+import { toJalali } from '@/lib/jalali';
 import { addDays, startOfDay } from '@/lib/time';
 import { ITEM_H, VISIBLE, Wheel } from './Wheel';
 
@@ -12,6 +13,8 @@ const DAYS_BACK = 60;
 const MS_DAY = 24 * 60 * 60 * 1000;
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// getDay() is 0=Sun..6=Sat; matches the ordering used in dayGroup.ts.
+const WEEKDAYS_FA = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
 
 function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
@@ -30,13 +33,18 @@ const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
 // local time (synced to the system clock) and stores a UTC ISO instant
 // (toISOString) so the cloud round-trip is timezone-safe.
 export function DateTimeRow({ value, onChange }: Props): JSX.Element {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const d = parseValue(value);
   const today = startOfDay(new Date());
 
-  // Date wheel: oldest (DAYS_BACK ago) → today.
+  // Date wheel: oldest (DAYS_BACK ago) → today. Persian side shows Solar-Hijri
+  // (Jalali) months in day-then-month order, matching the rest of the app.
   const dayLabels = Array.from({ length: DAYS_BACK + 1 }, (_, i) => {
     const dt = addDays(today, -(DAYS_BACK - i));
+    if (lang === 'fa') {
+      const j = toJalali(dt);
+      return `${WEEKDAYS_FA[dt.getDay()]} ${j.jd} ${j.monthName}`;
+    }
     return `${WEEKDAYS[dt.getDay()]} ${MONTHS[dt.getMonth()]} ${dt.getDate()}`;
   });
   const daysAgo = clamp(Math.round((today.getTime() - startOfDay(d).getTime()) / MS_DAY), 0, DAYS_BACK);
@@ -87,7 +95,12 @@ export function DateTimeRow({ value, onChange }: Props): JSX.Element {
           }}
         />
         <View className="flex-row items-center justify-center">
-          <Wheel data={dayLabels} index={dateIndex} onIndexChange={setDateIndex} width={118} />
+          <Wheel
+            data={dayLabels}
+            index={dateIndex}
+            onIndexChange={setDateIndex}
+            width={lang === 'fa' ? 150 : 118}
+          />
           <View style={{ width: 10 }} />
           <Wheel data={HOURS} index={d.getHours()} onIndexChange={setHour} loop width={42} />
           <Text className="text-ink text-base font-bold mx-0.5">:</Text>

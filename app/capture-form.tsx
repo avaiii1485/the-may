@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { Pencil, X } from 'lucide-react-native';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CatalogReflection, type MultiField, type SingleField } from '@/components/capture/CatalogReflection';
@@ -29,6 +29,9 @@ export default function CaptureFormScreen(): JSX.Element {
   const setFeeling = useCaptureDraftStore((s) => s.setFeeling);
   const { saveOnPath, saveOffPath, isPending } = useCreateMeal();
   const questions = useQuestions();
+  // Lock the page scroll while a finger is on the date/time wheel so the drag
+  // moves the wheel instead of scrolling the form away (Android nested-scroll fix).
+  const [pageScrollEnabled, setPageScrollEnabled] = useState(true);
 
   const setSingleSafe = (field: SingleField, value: string) => {
     if (field === 'howWasIt') setSingle('howWasIt', value as DraftMeal['howWasIt']);
@@ -82,7 +85,11 @@ export default function CaptureFormScreen(): JSX.Element {
         <View className="w-10" />
       </View>
 
-      <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView
+        className="flex-1 px-4"
+        contentContainerStyle={{ paddingBottom: 40 }}
+        scrollEnabled={pageScrollEnabled}
+      >
         {draft.photoUri ? (
           <Image
             source={{ uri: draft.photoUri }}
@@ -117,7 +124,12 @@ export default function CaptureFormScreen(): JSX.Element {
 
         {/* When did you eat? — adjust so an imported (or just-taken) photo lands
             in the right place on the timeline. */}
-        <View className="bg-bg-card rounded-2xl p-4 mb-3">
+        <View
+          className="bg-bg-card rounded-2xl p-4 mb-3"
+          onTouchStart={() => setPageScrollEnabled(false)}
+          onTouchEnd={() => setPageScrollEnabled(true)}
+          onTouchCancel={() => setPageScrollEnabled(true)}
+        >
           <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
             {t('capture.whenAteTitle')}
           </Text>

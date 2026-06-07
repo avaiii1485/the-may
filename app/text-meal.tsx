@@ -21,6 +21,8 @@ export default function TextMealScreen(): JSX.Element {
 
   const [text, setText] = useState('');
   const [iso, setIso] = useState<string>(nowIso());
+  // Lock page scroll while dragging the date/time wheel (Android nested-scroll fix).
+  const [pageScrollEnabled, setPageScrollEnabled] = useState(true);
 
   useEffect(() => {
     // Start from a clean draft when arriving here
@@ -62,8 +64,13 @@ export default function TextMealScreen(): JSX.Element {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
-        <View className="bg-bg-card rounded-2xl p-4 mb-5">
+      <ScrollView contentContainerStyle={{ padding: 20 }} scrollEnabled={pageScrollEnabled}>
+        <View
+          className="bg-bg-card rounded-2xl p-4 mb-5"
+          onTouchStart={() => setPageScrollEnabled(false)}
+          onTouchEnd={() => setPageScrollEnabled(true)}
+          onTouchCancel={() => setPageScrollEnabled(true)}
+        >
           <Text className="text-xs uppercase tracking-widest text-ink-mute mb-3">
             {t('capture.whenAteTitle')}
           </Text>

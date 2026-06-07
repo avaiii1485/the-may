@@ -52,6 +52,8 @@ export default function MealEditScreen(): JSX.Element {
   const { update, isPending } = useUpdateMeal();
   const questions = useQuestions();
   const [form, setForm] = useState<FormState | null>(null);
+  // Lock page scroll while dragging the date/time wheel (Android nested-scroll fix).
+  const [pageScrollEnabled, setPageScrollEnabled] = useState(true);
 
   useEffect(() => {
     if (meal && !form) setForm(fromMeal(meal));
@@ -129,7 +131,11 @@ export default function MealEditScreen(): JSX.Element {
         </Pressable>
       </View>
 
-      <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView
+        className="flex-1 px-4"
+        contentContainerStyle={{ paddingBottom: 120 }}
+        scrollEnabled={pageScrollEnabled}
+      >
         {meal.photoUrl ? (
           <Image
             source={{ uri: meal.photoUrl }}
@@ -211,7 +217,12 @@ export default function MealEditScreen(): JSX.Element {
         </View>
 
         {/* Adjust the meal time — saving will move the meal in the timeline. */}
-        <View className="bg-bg-card rounded-2xl p-4 mb-3">
+        <View
+          className="bg-bg-card rounded-2xl p-4 mb-3"
+          onTouchStart={() => setPageScrollEnabled(false)}
+          onTouchEnd={() => setPageScrollEnabled(true)}
+          onTouchCancel={() => setPageScrollEnabled(true)}
+        >
           <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
             {t('capture.whenAteTitle')}
           </Text>
