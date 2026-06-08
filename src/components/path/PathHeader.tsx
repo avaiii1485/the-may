@@ -16,7 +16,7 @@ export function PathHeader({ goal }: Props): JSX.Element {
   const handle = useProfileStore((s) => s.handle);
 
   return (
-    <View className="bg-path px-5 pt-12 pb-6 rounded-b-[28px]">
+    <View className="bg-path px-5 pt-4 pb-5 rounded-b-[28px]">
       <View className="flex-row items-center justify-between">
         <Pressable
           onPress={() => router.push('/settings')}
