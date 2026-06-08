@@ -30,6 +30,13 @@ export function Wheel({ data, index, onIndexChange, loop = false, width = 56 }: 
   const animating = useRef(false);
   const [center, setCenter] = useState(Math.round(index));
 
+  // The PanResponder/commit below are built once on mount, so they would capture
+  // a stale onIndexChange — and that callback closes over the parent's value at
+  // mount. Routing through a ref makes a commit always use the *current* handler,
+  // so editing one wheel no longer resets the others to the original time.
+  const onIndexChangeRef = useRef(onIndexChange);
+  onIndexChangeRef.current = onIndexChange;
+
   // Keep posVal + the rendered center in sync as pos changes.
   useEffect(() => {
     const id = pos.addListener(({ value }) => {
@@ -61,7 +68,7 @@ export function Wheel({ data, index, onIndexChange, loop = false, width = 56 }: 
         pos.setValue(logical); // normalize so the numbers stay small (no visual jump)
         setCenter(logical);
       }
-      onIndexChange(logical);
+      onIndexChangeRef.current(logical);
     });
   };
 
