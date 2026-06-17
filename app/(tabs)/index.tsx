@@ -1,6 +1,14 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ChevronDown } from 'lucide-react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SyncStatus } from '@/components/common/SyncStatus';
 import { BadgeCelebration } from '@/components/path/BadgeCelebration';
@@ -15,6 +23,7 @@ import { isSupabaseConfigured } from '@/lib/supabase';
 import { startOfDay } from '@/lib/time';
 import { useAuthStore } from '@/stores/authStore';
 import { useAuthPromptStore } from '@/stores/authPromptStore';
+import { usePathScrollStore } from '@/stores/pathScrollStore';
 
 export default function PathScreen(): JSX.Element {
   const { t } = useI18n();
@@ -48,16 +57,57 @@ export default function PathScreen(): JSX.Element {
   const entries = withEmptyDays(ascending);
 
   const scrollRef = useRef<ScrollView>(null);
+  const offsetRef = useRef(0);
+  const viewportH = useRef(0);
+  const contentH = useRef(0);
+  const didInitialScroll = useRef(false);
+  const [showScrollDown, setShowScrollDown] = useState(false);
+  const jumpToBottom = usePathScrollStore((s) => s.jumpToBottom);
+  const clearJump = usePathScrollStore((s) => s.clearJump);
 
-  // On every focus of the Path tab (and on mount), jump to the bottom so the
-  // user lands on the most recent meal.
+  const NEAR_BOTTOM = 80; // px tolerance for treating the feed as "at the bottom"
+
+  // The jump-to-bottom button shows only when the feed is scrollable AND the
+  // user has scrolled up away from the bottom.
+  const recomputeShowDown = useCallback(() => {
+    const scrollable = contentH.current - viewportH.current;
+    const distFromBottom = scrollable - offsetRef.current;
+    setShowScrollDown(scrollable > NEAR_BOTTOM && distFromBottom > NEAR_BOTTOM);
+  }, []);
+
+  const onScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      offsetRef.current = e.nativeEvent.contentOffset.y;
+      viewportH.current = e.nativeEvent.layoutMeasurement.height;
+      contentH.current = e.nativeEvent.contentSize.height;
+      recomputeShowDown();
+    },
+    [recomputeShowDown],
+  );
+
+  const scrollToBottom = useCallback(() => {
+    scrollRef.current?.scrollToEnd({ animated: true });
+  }, []);
+
+  // Scroll-to-bottom happens in two cases: the first time the Path tab is shown
+  // (land on the latest meal, no animation), and right after a new meal is saved
+  // (smoothly reveal it — flagged via pathScrollStore). Every other focus
+  // (returning from an edit screen or another tab) leaves the scroll where the
+  // user left it, since the ScrollView keeps its own position.
   useFocusEffect(
     useCallback(() => {
       const id = setTimeout(() => {
-        scrollRef.current?.scrollToEnd({ animated: false });
+        if (!didInitialScroll.current) {
+          scrollRef.current?.scrollToEnd({ animated: false });
+          didInitialScroll.current = true;
+        } else if (jumpToBottom) {
+          scrollRef.current?.scrollToEnd({ animated: true });
+        }
+        if (jumpToBottom) clearJump();
+        recomputeShowDown();
       }, 80);
       return () => clearTimeout(id);
-    }, []),
+    }, [jumpToBottom, clearJump, recomputeShowDown]),
   );
 
   return (
@@ -67,6 +117,8 @@ export default function PathScreen(): JSX.Element {
       <SyncStatus />
       <ScrollView
         ref={scrollRef}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={{ paddingBottom: 40, flexGrow: 1, justifyContent: 'flex-end' }}
       >
         {entries.length === 0 ? (
@@ -95,6 +147,32 @@ export default function PathScreen(): JSX.Element {
           })
         )}
       </ScrollView>
+
+      {showScrollDown ? (
+        <Pressable
+          onPress={scrollToBottom}
+          accessibilityRole="button"
+          accessibilityLabel="Scroll to latest"
+          style={{
+            position: 'absolute',
+            right: 16,
+            bottom: 16,
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: '#F39C3D',
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: '#0F172A',
+            shadowOpacity: 0.18,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 4,
+          }}
+        >
+          <ChevronDown size={24} color="#FFFFFF" />
+        </Pressable>
+      ) : null}
     </SafeAreaView>
   );
 }

@@ -11,6 +11,7 @@ import { useI18n } from '@/i18n';
 import { useCreateMeal } from '@/hooks/useMeals';
 import { useQuestions } from '@/hooks/useQuestions';
 import { useCaptureDraftStore } from '@/stores/captureDraftStore';
+import { usePathScrollStore } from '@/stores/pathScrollStore';
 import type { DraftMeal } from '@/types/meal';
 
 function nowIso(): string {
@@ -48,6 +49,8 @@ export default function CaptureFormScreen(): JSX.Element {
   const isoValue = draft.eatenAt ?? nowIso();
 
   const goToPath = () => {
+    // A meal was just saved — ask the Path tab to scroll down to reveal it.
+    usePathScrollStore.getState().requestJumpToBottom();
     // Close any modal stack (capture-form is a modal), then make sure we're on Path.
     try {
       if (router.canDismiss?.()) router.dismissAll();
