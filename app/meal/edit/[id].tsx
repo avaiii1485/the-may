@@ -9,6 +9,7 @@ import { OffPathArrow, OnPathArrow } from '@/components/icons/OnPathArrow';
 import { useI18n } from '@/i18n';
 import { useMeal, useUpdateMeal } from '@/hooks/useMeals';
 import { useQuestions } from '@/hooks/useQuestions';
+import { usePathScrollStore } from '@/stores/pathScrollStore';
 import { type FeelingLevel, type Meal } from '@/types/meal';
 
 interface FormState {
@@ -96,6 +97,10 @@ export default function MealEditScreen(): JSX.Element {
     };
     try {
       await update(id, patch);
+      // If the meal's time moved, ask the Path tab to scroll to its new spot.
+      if (meal && form.eatenAt !== meal.eatenAt) {
+        usePathScrollStore.getState().requestFocusMeal(id);
+      }
       router.back();
     } catch {
       // surface UI error if desired

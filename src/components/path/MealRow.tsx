@@ -18,12 +18,13 @@ interface Props {
   meal: Meal;
   prevEatenAt: string | null;
   onPress?: () => void;
+  innerRef?: (node: View | null) => void;
 }
 
 const ROW_HEIGHT = CARD_SIZE + 28;
 const DOT_SIZE = 10;
 
-export function MealRow({ meal, prevEatenAt, onPress }: Props): JSX.Element {
+export function MealRow({ meal, prevEatenAt, onPress, innerRef }: Props): JSX.Element {
   const { d } = useI18n();
   const xPct = meal.onPath ? CENTER_X_PCT : OFF_PATH_X_PCT;
   const time = d(formatTimeOfDay(meal.eatenAt));
@@ -31,7 +32,7 @@ export function MealRow({ meal, prevEatenAt, onPress }: Props): JSX.Element {
   const isTextOnly = !meal.photoUrl && !!meal.textContent;
 
   return (
-    <View style={{ flexDirection: 'row', direction: 'ltr' }}>
+    <View ref={innerRef} style={{ flexDirection: 'row', direction: 'ltr' }}>
       <View style={{ width: LEFT_SPACER }} />
       <View style={{ flex: 1, position: 'relative', height: ROW_HEIGHT }}>
         {/* Gray ghost line — always centered, drawn behind everything */}

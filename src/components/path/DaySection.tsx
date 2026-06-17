@@ -14,9 +14,10 @@ interface Props {
   date: Date;
   meals: Meal[];
   today: Date;
+  registerRow?: (id: string, node: View | null) => void;
 }
 
-export function DaySection({ date, meals, today }: Props): JSX.Element {
+export function DaySection({ date, meals, today, registerRow }: Props): JSX.Element {
   const { lang } = useI18n();
   const isToday = startOfDay(date).getTime() === today.getTime();
   const label = dayLabel(date, today, lang);
@@ -39,6 +40,7 @@ export function DaySection({ date, meals, today }: Props): JSX.Element {
               meal={m}
               prevEatenAt={meals[i - 1]?.eatenAt ?? null}
               onPress={() => router.push(`/meal/${m.id}`)}
+              innerRef={registerRow ? (node) => registerRow(m.id, node) : undefined}
             />
           </View>
         ))}

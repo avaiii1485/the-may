@@ -64,6 +64,9 @@ export default function PathScreen(): JSX.Element {
   const [showScrollDown, setShowScrollDown] = useState(false);
   const jumpToBottom = usePathScrollStore((s) => s.jumpToBottom);
   const clearJump = usePathScrollStore((s) => s.clearJump);
+  const focusMealId = usePathScrollStore((s) => s.focusMealId);
+  const clearFocusMeal = usePathScrollStore((s) => s.clearFocusMeal);
+  const rowRefs = useRef(new Map<string, View>()).current;
 
   const NEAR_BOTTOM = 80; // px tolerance for treating the feed as "at the bottom"
 
@@ -89,11 +92,38 @@ export default function PathScreen(): JSX.Element {
     scrollRef.current?.scrollToEnd({ animated: true });
   }, []);
 
-  // Scroll-to-bottom happens in two cases: the first time the Path tab is shown
-  // (land on the latest meal, no animation), and right after a new meal is saved
-  // (smoothly reveal it — flagged via pathScrollStore). Every other focus
-  // (returning from an edit screen or another tab) leaves the scroll where the
-  // user left it, since the ScrollView keeps its own position.
+  const registerRow = useCallback(
+    (id: string, node: View | null) => {
+      if (node) rowRefs.set(id, node);
+      else rowRefs.delete(id);
+    },
+    [rowRefs],
+  );
+
+  // Smoothly scroll to a specific meal's row by measuring its offset within the
+  // ScrollView's content (used after a meal's time is edited and it moves).
+  const scrollToMeal = useCallback(
+    (id: string) => {
+      const node = rowRefs.get(id);
+      const inner = scrollRef.current?.getInnerViewNode?.();
+      if (!node || inner == null) return;
+      node.measureLayout(
+        inner,
+        (_x: number, y: number) => {
+          scrollRef.current?.scrollTo({ y: Math.max(0, y - 80), animated: true });
+        },
+        () => {},
+      );
+    },
+    [rowRefs],
+  );
+
+  // Scroll behavior on focus, in priority order:
+  //  - first mount: land on the latest meal (bottom), no animation.
+  //  - a new meal was just saved: smoothly scroll to the bottom to reveal it.
+  //  - a meal's time was edited: smoothly scroll to its new timeline position.
+  //  - otherwise (returning from an edit/summary or another tab): leave the
+  //    scroll where the user left it — the ScrollView keeps its own position.
   useFocusEffect(
     useCallback(() => {
       const id = setTimeout(() => {
@@ -102,12 +132,15 @@ export default function PathScreen(): JSX.Element {
           didInitialScroll.current = true;
         } else if (jumpToBottom) {
           scrollRef.current?.scrollToEnd({ animated: true });
+        } else if (focusMealId) {
+          scrollToMeal(focusMealId);
         }
         if (jumpToBottom) clearJump();
+        if (focusMealId) clearFocusMeal();
         recomputeShowDown();
       }, 80);
       return () => clearTimeout(id);
-    }, [jumpToBottom, clearJump, recomputeShowDown]),
+    }, [jumpToBottom, clearJump, focusMealId, clearFocusMeal, scrollToMeal, recomputeShowDown]),
   );
 
   return (
@@ -142,6 +175,7 @@ export default function PathScreen(): JSX.Element {
                 date={entry.date}
                 meals={entry.meals}
                 today={today}
+                registerRow={registerRow}
               />
             );
           })
