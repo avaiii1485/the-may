@@ -15,6 +15,7 @@
 - **Forms / validation**: React Hook Form + Zod.
 - **Backend (optional)**: **Supabase** — Postgres + Auth + Storage + Realtime. Schema + RLS in `supabase.sql`. App works fully without it via a localStorage fallback.
 - **Charts / icons**: `react-native-svg` for custom charts; `lucide-react-native` for icons.
+- **Images**: `expo-image` renders meal photos (memory+disk cache, downsampling); `expo-image-manipulator` downscales + re-encodes uploads to JPEG. Both are native modules (need a build, not OTA).
 - **i18n**: in-house, under `src/i18n/`.
 - **Tooling**: ESLint, Prettier, `tsc --noEmit` for typecheck.
 
@@ -53,7 +54,7 @@ src/
                           directly.
   stores/                 Zustand stores: captureDraftStore, localMealsStore,
                           profileStore, languageStore, pinnedInsightsStore,
-                          seenBadgesStore, authStore
+                          seenBadgesStore, authStore, pathScrollStore
   schemas/                Zod schemas
   lib/                    supabase client, queryClient, time helpers, dayGroup,
                           patternDetector, todaysExperiment, weekCompare, jalali,
@@ -116,6 +117,7 @@ npx expo export --platform web   # outputs to dist/
 - **Pattern detector is statistical, not ML.** The "Your top insight" card is `src/lib/patternDetector.ts` — it cross-tabs on-path rate against seven dimensions (where, with, how-made, why, day-of-week, time-of-day, after-feel) and ranks by `deviation × √n`. There is no AI/ML in the codebase.
 - **NativeWind v4 dark mode is class-based**, not media-based (`darkMode: 'class'` in `tailwind.config.js`). The app is light-mode only; this setting exists to avoid a runtime throw from `react-native-css-interop` (see Gotchas).
 - **Supabase Storage** for photos is the production path. The local fallback keeps the picked `data:` URI in the meals store, which works for demos but hits `localStorage` quota quickly — production deploys must wire Supabase.
+- **Meal photos are optimized on the way in and on render.** Uploads are downscaled to ~1000px / JPEG q0.7 in `services/storage.ts` (`shrink()`), and the Path timeline renders them via `expo-image` with `cachePolicy="memory-disk"`. Stored signed URLs are long-lived (1-yr TTL) so the cache stays valid. Existing pre-optimization photos stay full-res on the server (free-tier Supabase has no image transform); they're only slow on first view, then cached.
 
 ## Gotchas / Things to Watch Out For
 

@@ -1,13 +1,26 @@
 # PROGRESS.md
 
 ## Last Updated
-2026-06-08
+2026-06-18
 
 ---
-# ⭐ HANDOFF / CURRENT STATE (2026-06-08) — read this first
+# ⭐ HANDOFF / CURRENT STATE (2026-06-18) — read this first
 Everything below the divider is detailed history; this block is the live state.
 
-## ✅ RESOLVED this session — date/time picker works on device + OTA is finally live
+## ✅ Shipped 2026-06-18 — Path-tab scroll UX (JS-only, OTA-able)
+- **Scroll position restored on route change.** The Path tab used to force `scrollToEnd` on every focus, so returning from a meal edit or a tab switch jumped to the bottom. Now it scrolls to bottom **only on first mount**; later focuses leave the ScrollView's retained position alone. (`app/(tabs)/index.tsx`)
+- **Floating "scroll to latest" button.** Circular orange (`#F39C3D`) chevron-down pinned bottom-right of the Path feed; appears only when scrolled up away from the bottom (tracked via `onScroll`, 80px tolerance, only when scrollable), hides at the bottom, smooth-scrolls down on tap.
+- **New-meal autoscroll preserved.** A runtime-only `src/stores/pathScrollStore.ts` carries a one-shot `jumpToBottom` flag; `capture-form`'s `goToPath()` sets it on save (the single new-meal path — text meals route through here too), so saving a meal smoothly scrolls Path to the bottom to reveal it, while every *other* return restores position.
+- **Status:** committed + pushed (`4e072c4`), web auto-deployed. **Pure JS → ship to the phone with `eas update --branch preview`** (no rebuild). Not yet confirmed OTA'd to device.
+
+## ✅ Shipped + REBUILT 2026-06-08..18 — meal photo performance (native; now installed)
+- Users reported slow photo loads + laggy Path scrolling. Photos are remote PNG **signed URLs** (stable, 1-yr TTL), uploaded full-resolution with no caching on render. Two fixes (`5d10072`):
+  - **A — downscale + JPEG on upload** (`src/services/storage.ts` `shrink()` via `expo-image-manipulator`): resize to ~1000px / quality 0.7 (avatars 512px), safe fallback to original on failure. New uploads go from multi-MB PNG → a few hundred KB.
+  - **B — `expo-image` on the Path tab** (`MealRow.tsx`): `cachePolicy="memory-disk"` + downsampling; stable signed URLs make the cache effective.
+- **Both are native modules → required a rebuild. That rebuild is DONE, installed, and user-confirmed ("all is good").** So the installed APK now bakes in `expo-image` + `expo-image-manipulator`.
+- **Decision: existing photos use "Option 1"** — no server-side resize (user is on Supabase **free**, image-transform add-on is Pro-only) and no re-process migration; rely on B's caching/downsampling. Old PNGs are slow only on first view, then cached. (Re-process via a one-time `sharp` script remains the clean future option if needed.)
+
+## ✅ RESOLVED 2026-06-08 — date/time picker works on device + OTA is finally live
 - **Picker decision: kept the custom PanResponder drum** (no native picker, no library). The repeated Android failures were two real bugs, now fixed:
   1. **Page scrolled away while dragging the wheel** — fixed without a nested ScrollView: each picker screen (`capture-form`, `text-meal`, `meal/edit/[id]`) now has a `pageScrollEnabled` state; the card wrapping `DateTimeRow` sets `onTouchStart`→disable / `onTouchEnd`+`onTouchCancel`→enable on the parent `ScrollView`. The wheel is a `PanResponder` (not a ScrollView), so it stays draggable while the page is locked.
   2. **Setting one wheel reset the others to the current time** — root cause was a stale closure: `Wheel.tsx`'s `PanResponder`/`commit` are built once at mount and captured the mount-time `onIndexChange`, which closed over `DateTimeRow`'s mount-time `d`. Routed `commit` through an `onIndexChangeRef` that always points at the latest handler. Hour/minute/date now persist independently until save/close. Verified via an ad-hoc Node composition test (10/10) + on web + **on device ("the picker was great")**.
@@ -17,7 +30,8 @@ Everything below the divider is detailed history; this block is the live state.
 - **Still worth an on-device sanity pass** (newly activated native changes from this rebuild): Insights drag-reorder (Reanimated/DraggableFlatList, no crash), native photo-meal upload → web sync, Jalali wheel in FA, sync pill only flashing "Saving…".
 
 ## Repo / deploy
-- Git HEAD = **`6c5d209`** ("Fix wheel resetting sibling values via stale callback closure"), `main` is in sync with `origin/main`. Nothing uncommitted. The installed APK was built from this state.
+- Git HEAD = **`4e072c4`** ("Restore Path scroll position; add jump-to-latest button + new-meal autoscroll"), `main` is in sync with `origin/main`. Nothing uncommitted.
+- **Installed APK** was rebuilt from ~`5d10072` (meal-photo optimization) — it bakes in `expo-image` + `expo-image-manipulator` and has OTA enabled. JS-only commits since (`4e072c4`) reach it via `eas update --branch preview`.
 - **Vercel web app is LIVE and fully current** (auto-deploys from `main`): https://the-may-seven.vercel.app
 - GitHub: https://github.com/avaiii1485/the-may  · Supabase project ref `lobvpaqhgephjyeiupng` · Expo account `ava8y`, EAS projectId `8110698b-35bf-4179-b4e7-de5b4decf364`.
 - `.env.local` (gitignored) holds the Supabase URL + anon key. Same keys are set as EAS env vars (all 3 envs) and in Vercel.
