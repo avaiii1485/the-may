@@ -1,27 +1,42 @@
 # PROGRESS.md
 
 ## Last Updated
-2026-06-04
+2026-06-08
 
 ---
-# ⭐ HANDOFF / CURRENT STATE (2026-06-04) — read this first
+# ⭐ HANDOFF / CURRENT STATE (2026-06-08) — read this first
 Everything below the divider is detailed history; this block is the live state.
 
+## ✅ RESOLVED this session — date/time picker works on device + OTA is finally live
+- **Picker decision: kept the custom PanResponder drum** (no native picker, no library). The repeated Android failures were two real bugs, now fixed:
+  1. **Page scrolled away while dragging the wheel** — fixed without a nested ScrollView: each picker screen (`capture-form`, `text-meal`, `meal/edit/[id]`) now has a `pageScrollEnabled` state; the card wrapping `DateTimeRow` sets `onTouchStart`→disable / `onTouchEnd`+`onTouchCancel`→enable on the parent `ScrollView`. The wheel is a `PanResponder` (not a ScrollView), so it stays draggable while the page is locked.
+  2. **Setting one wheel reset the others to the current time** — root cause was a stale closure: `Wheel.tsx`'s `PanResponder`/`commit` are built once at mount and captured the mount-time `onIndexChange`, which closed over `DateTimeRow`'s mount-time `d`. Routed `commit` through an `onIndexChangeRef` that always points at the latest handler. Hour/minute/date now persist independently until save/close. Verified via an ad-hoc Node composition test (10/10) + on web + **on device ("the picker was great")**.
+  - **Jalali FA months** wired into the date wheel: Persian shows Solar-Hijri months in day-then-month order (e.g. `پنجشنبه 16 اردیبهشت`); date column widens to 150px on FA. English unchanged.
+- **🟢 OTA is now ENABLED on the phone.** A fresh `eas build -p android --profile preview` was completed and installed (from ~`6c5d209`). Because this build's `app.json` has `expo.updates.url`, the device will now fetch OTA updates. **Going forward: JS-only changes ship via `eas update --branch preview` (~2 min, no rebuild); native changes still need `eas build`.**
+  - Build-upload gotcha discovered: `eas build` upload to EAS storage returned **403 Forbidden** from a blocked VPN exit / region (not a CLI-version issue — confirmed identical on 20.1.0). Fix was switching the VPN exit node to an unrestricted region. `eas` and `npx eas-cli` are the same tool.
+- **Still worth an on-device sanity pass** (newly activated native changes from this rebuild): Insights drag-reorder (Reanimated/DraggableFlatList, no crash), native photo-meal upload → web sync, Jalali wheel in FA, sync pill only flashing "Saving…".
+
 ## Repo / deploy
-- Git HEAD = **`75a9375`** ("Rewrite wheel as a PanResponder drum"), `main` is in sync with `origin/main`. Nothing uncommitted.
+- Git HEAD = **`6c5d209`** ("Fix wheel resetting sibling values via stale callback closure"), `main` is in sync with `origin/main`. Nothing uncommitted. The installed APK was built from this state.
 - **Vercel web app is LIVE and fully current** (auto-deploys from `main`): https://the-may-seven.vercel.app
 - GitHub: https://github.com/avaiii1485/the-may  · Supabase project ref `lobvpaqhgephjyeiupng` · Expo account `ava8y`, EAS projectId `8110698b-35bf-4179-b4e7-de5b4decf364`.
 - `.env.local` (gitignored) holds the Supabase URL + anon key. Same keys are set as EAS env vars (all 3 envs) and in Vercel.
 
-## 🔴 CRITICAL discovery: OTA updates were NOT reaching the phone
+## 🟢 RESOLVED 2026-06-08: OTA now reaches the phone (history below)
+> The rebuild described in this section was completed and installed on 2026-06-08, so the phone now has OTA enabled. The original diagnosis is kept below for context.
+
+## 🔴 (historical) CRITICAL discovery: OTA updates were NOT reaching the phone
 - Symptom: user kept seeing OLD date/time picker behavior (tap-to-type, "00" reset) that was removed two wheel-versions ago. → The installed APK has **never received any `eas update`**.
 - **Root cause:** `app.json` was missing `expo.updates.url`, so the last APK build did **not** have OTA enabled — the phone only ever runs the JS **baked into the APK at build time**. Every `eas update` I published went to the web/Expo server but the app never fetched it.
 - **FIXED in config:** `app.json` now has `"updates": { "url": "https://u.expo.dev/8110698b-35bf-4179-b4e7-de5b4decf364" }` (committed). **BUT this only takes effect after the NEXT `eas build`.** Until a fresh build is installed, OTA does nothing for this device.
 - **Consequence / mental model going forward:** the **currently installed APK was built from commit `3dc5923`** ("Restore native drag-to-reorder"), so the phone is running: Reanimated enabled, native DraggableFlatList on Insights, and **wheel v1 (ScrollView + tap-to-edit, the buggy one)**. All wheel fixes since (`090726e`, `75a9375`) are on web + git but NOT on the phone.
 - **THE NEXT REQUIRED ACTION IS A REBUILD** (`eas build -p android --profile preview`). That rebuild (a) ships all the JS fixes, and (b) finally enables OTA so future JS-only changes reach the phone via `eas update --branch preview`.
 
-## ⏳ UNRESOLVED — date/time picker (user wants to change it AGAIN)
-The custom wheel has failed repeatedly on Android. Current code (`75a9375`) is a PanResponder drum (`src/components/capture/Wheel.tsx` + `src/components/capture/DateTimeRow.tsx`) — untested on device. User's reported bugs (on the OLD baked v1, but the approach is the concern):
+## ✅ RESOLVED 2026-06-08 — date/time picker (see the handoff block at top)
+> Outcome: kept the custom PanResponder drum; fixed the page-scroll conflict (per-screen `pageScrollEnabled` + touch handlers) and the stale-closure value reset (`onIndexChangeRef`), and added Jalali FA months. Verified on web and on device. The A-vs-B (native picker / library drum) decision below was NOT taken — the custom drum was made to work instead. Original notes kept for context.
+
+## (historical) ⏳ UNRESOLVED — date/time picker (user wanted to change it AGAIN)
+The custom wheel had failed repeatedly on Android. Code at `75a9375` was a PanResponder drum (`src/components/capture/Wheel.tsx` + `src/components/capture/DateTimeRow.tsx`) — untested on device. User's reported bugs (on the OLD baked v1, but the approach is the concern):
 1. Dragging the wheel scrolls the **page** away (nested-scroll / gesture conflict).
 2. Tap-to-type isn't digit-limited (need max 2 digits, hour 00–23, minute 00–59) — **NOTE: v3/PanResponder already removed tap-to-type entirely.**
 3. Typing then "Done" sets value to "00" even if unchanged.
