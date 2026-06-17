@@ -1,5 +1,6 @@
 import { decode } from 'base64-arraybuffer';
 import * as FileSystem from 'expo-file-system';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { Platform } from 'react-native';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
@@ -37,6 +38,22 @@ async function readUpload(uri: string): Promise<{ body: Blob | ArrayBuffer; cont
   return { body: decode(base64), contentType: mimeFromUri(uri) };
 }
 
+// Downscale + re-encode to JPEG before upload. Camera/library shots are often
+// multi-MB PNGs; at ~maxWidth px / quality 0.7 they become a few hundred KB,
+// which is what makes the Path timeline fast to load and decode. Falls back to
+// the original URI if manipulation fails for any reason.
+async function shrink(uri: string, maxWidth: number): Promise<string> {
+  try {
+    const result = await manipulateAsync(uri, [{ resize: { width: maxWidth } }], {
+      compress: 0.7,
+      format: SaveFormat.JPEG,
+    });
+    return result.uri;
+  } catch {
+    return uri;
+  }
+}
+
 async function uploadImage(
   bucket: string,
   path: string,
@@ -62,8 +79,8 @@ export async function uploadMealPhoto(userId: string, localUri: string): Promise
     // No backend configured: keep the local URI as the photo source.
     return localUri;
   }
-  const ext = mimeFromUri(localUri).split('/')[1] ?? 'jpg';
-  return uploadImage(BUCKET, `${userId}/${Date.now()}.${ext}`, localUri, false);
+  const uri = await shrink(localUri, 1000);
+  return uploadImage(BUCKET, `${userId}/${Date.now()}.jpg`, uri, false);
 }
 
 // Uploads a locally-picked avatar to the avatars bucket and returns a long-lived
@@ -71,6 +88,6 @@ export async function uploadMealPhoto(userId: string, localUri: string): Promise
 // local URI on one device.
 export async function uploadAvatar(userId: string, localUri: string): Promise<string | null> {
   if (!isSupabaseConfigured || !supabase) return localUri;
-  const ext = mimeFromUri(localUri).split('/')[1] ?? 'jpg';
-  return uploadImage(AVATAR_BUCKET, `${userId}/avatar-${Date.now()}.${ext}`, localUri, true);
+  const uri = await shrink(localUri, 512);
+  return uploadImage(AVATAR_BUCKET, `${userId}/avatar-${Date.now()}.jpg`, uri, true);
 }

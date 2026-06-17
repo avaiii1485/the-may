@@ -1,4 +1,5 @@
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Pressable, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import {
   CARD_SIZE,
@@ -71,7 +72,14 @@ export function MealRow({ meal, prevEatenAt, onPress }: Props): JSX.Element {
           }}
         >
           {meal.photoUrl ? (
-            <Image source={{ uri: meal.photoUrl }} className="w-full h-full" resizeMode="cover" />
+            <Image
+              source={{ uri: meal.photoUrl }}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              recyclingKey={meal.id}
+              transition={120}
+            />
           ) : isTextOnly ? (
             <View className="w-full h-full items-center justify-center px-2">
               <Text className="text-ink text-center text-[13px] font-semibold" numberOfLines={4}>
