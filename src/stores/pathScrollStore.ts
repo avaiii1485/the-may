@@ -7,17 +7,28 @@ import { create } from 'zustand';
 interface PathScrollState {
   jumpToBottom: boolean;
   focusMealId: string | null;
+  // savedOffset + initialized live here (not in component refs) so they survive
+  // a Path-screen remount — which Android's edge-swipe back gesture triggers.
+  // Without this, the remount looked like a first launch and snapped to bottom.
+  savedOffset: number;
+  initialized: boolean;
   requestJumpToBottom: () => void;
   clearJump: () => void;
   requestFocusMeal: (id: string) => void;
   clearFocusMeal: () => void;
+  setSavedOffset: (y: number) => void;
+  markInitialized: () => void;
 }
 
 export const usePathScrollStore = create<PathScrollState>((set) => ({
   jumpToBottom: false,
   focusMealId: null,
+  savedOffset: 0,
+  initialized: false,
   requestJumpToBottom: () => set({ jumpToBottom: true }),
   clearJump: () => set({ jumpToBottom: false }),
   requestFocusMeal: (id) => set({ focusMealId: id }),
   clearFocusMeal: () => set({ focusMealId: null }),
+  setSavedOffset: (y) => set({ savedOffset: y }),
+  markInitialized: () => set({ initialized: true }),
 }));

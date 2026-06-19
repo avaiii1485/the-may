@@ -60,12 +60,10 @@ export default function PathScreen(): JSX.Element {
   const offsetRef = useRef(0);
   const viewportH = useRef(0);
   const contentH = useRef(0);
-  const didInitialScroll = useRef(false);
+  // Pending scroll offset to (re)apply while the feed lays out after a focus —
+  // covers the remount case where content isn't measured yet at focus time.
+  const restoreTargetRef = useRef<number | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
-  const jumpToBottom = usePathScrollStore((s) => s.jumpToBottom);
-  const clearJump = usePathScrollStore((s) => s.clearJump);
-  const focusMealId = usePathScrollStore((s) => s.focusMealId);
-  const clearFocusMeal = usePathScrollStore((s) => s.clearFocusMeal);
   const rowRefs = useRef(new Map<string, View>()).current;
 
   const NEAR_BOTTOM = 80; // px tolerance for treating the feed as "at the bottom"
@@ -83,6 +81,8 @@ export default function PathScreen(): JSX.Element {
       offsetRef.current = e.nativeEvent.contentOffset.y;
       viewportH.current = e.nativeEvent.layoutMeasurement.height;
       contentH.current = e.nativeEvent.contentSize.height;
+      // Persist outside the component so the position survives a remount.
+      usePathScrollStore.getState().setSavedOffset(offsetRef.current);
       recomputeShowDown();
     },
     [recomputeShowDown],
@@ -118,29 +118,43 @@ export default function PathScreen(): JSX.Element {
     [rowRefs],
   );
 
-  // Scroll behavior on focus, in priority order:
-  //  - first mount: land on the latest meal (bottom), no animation.
+  // Scroll behavior on focus, in priority order (all flags/offset read from the
+  // store so they survive a Path remount — Android's edge-swipe back recreates
+  // the screen, which used to reset an in-component ref and snap to the bottom):
+  //  - true first launch: land on the latest meal (bottom), no animation.
   //  - a new meal was just saved: smoothly scroll to the bottom to reveal it.
   //  - a meal's time was edited: smoothly scroll to its new timeline position.
-  //  - otherwise (returning from an edit/summary or another tab): leave the
-  //    scroll where the user left it — the ScrollView keeps its own position.
+  //  - otherwise (returning from an edit/summary, another tab, or a gesture
+  //    remount): restore the saved scroll offset exactly.
   useFocusEffect(
     useCallback(() => {
-      const id = setTimeout(() => {
-        if (!didInitialScroll.current) {
-          scrollRef.current?.scrollToEnd({ animated: false });
-          didInitialScroll.current = true;
-        } else if (jumpToBottom) {
+      const apply = setTimeout(() => {
+        const s = usePathScrollStore.getState();
+        if (s.jumpToBottom) {
           scrollRef.current?.scrollToEnd({ animated: true });
-        } else if (focusMealId) {
-          scrollToMeal(focusMealId);
+        } else if (s.focusMealId) {
+          scrollToMeal(s.focusMealId);
+        } else if (!s.initialized) {
+          scrollRef.current?.scrollToEnd({ animated: false });
+        } else {
+          restoreTargetRef.current = s.savedOffset;
+          scrollRef.current?.scrollTo({ y: s.savedOffset, animated: false });
         }
-        if (jumpToBottom) clearJump();
-        if (focusMealId) clearFocusMeal();
+        s.clearJump();
+        s.clearFocusMeal();
+        s.markInitialized();
         recomputeShowDown();
       }, 80);
-      return () => clearTimeout(id);
-    }, [jumpToBottom, clearJump, focusMealId, clearFocusMeal, scrollToMeal, recomputeShowDown]),
+      // Stop re-applying the restore once the feed has settled, so later content
+      // growth (e.g. a new meal) doesn't yank the view back.
+      const settle = setTimeout(() => {
+        restoreTargetRef.current = null;
+      }, 600);
+      return () => {
+        clearTimeout(apply);
+        clearTimeout(settle);
+      };
+    }, [scrollToMeal, recomputeShowDown]),
   );
 
   return (
@@ -152,6 +166,13 @@ export default function PathScreen(): JSX.Element {
         ref={scrollRef}
         onScroll={onScroll}
         scrollEventThrottle={16}
+        onContentSizeChange={() => {
+          // If a restore is pending and the content has just (re)laid out, apply
+          // it now — the focus timeout can fire before layout on a remount.
+          if (restoreTargetRef.current != null) {
+            scrollRef.current?.scrollTo({ y: restoreTargetRef.current, animated: false });
+          }
+        }}
         contentContainerStyle={{ paddingBottom: 40, flexGrow: 1, justifyContent: 'flex-end' }}
       >
         {entries.length === 0 ? (
