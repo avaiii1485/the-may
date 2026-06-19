@@ -8,10 +8,13 @@
 Everything below the divider is detailed history; this block is the live state.
 
 ## ✅ Shipped 2026-06-18 — Path-tab scroll UX (JS-only, OTA-able)
-- **Scroll position restored on route change.** The Path tab used to force `scrollToEnd` on every focus, so returning from a meal edit or a tab switch jumped to the bottom. Now it scrolls to bottom **only on first mount**; later focuses leave the ScrollView's retained position alone. (`app/(tabs)/index.tsx`)
-- **Floating "scroll to latest" button.** Circular orange (`#F39C3D`) chevron-down pinned bottom-right of the Path feed; appears only when scrolled up away from the bottom (tracked via `onScroll`, 80px tolerance, only when scrollable), hides at the bottom, smooth-scrolls down on tap.
-- **New-meal autoscroll preserved.** A runtime-only `src/stores/pathScrollStore.ts` carries a one-shot `jumpToBottom` flag; `capture-form`'s `goToPath()` sets it on save (the single new-meal path — text meals route through here too), so saving a meal smoothly scrolls Path to the bottom to reveal it, while every *other* return restores position.
-- **Status:** committed + pushed (`4e072c4`), web auto-deployed. **Pure JS → ship to the phone with `eas update --branch preview`** (no rebuild). Not yet confirmed OTA'd to device.
+All driven by a runtime-only `src/stores/pathScrollStore.ts`. On focus the Path tab decides, in priority order: new meal saved → bottom; meal time edited → that meal; true first launch → bottom; otherwise → restore saved offset. (`app/(tabs)/index.tsx`)
+- **Scroll position restored on route change.** Previously forced `scrollToEnd` on every focus, so returning from an edit / tab switch jumped to the bottom. Now restores the exact prior offset.
+- **Floating "scroll to latest" button.** Circular orange (`#F39C3D`) chevron-down pinned bottom-right; appears only when scrolled up away from the bottom (via `onScroll`, 80px tolerance, only when scrollable), hides at the bottom, smooth-scrolls down on tap.
+- **New-meal autoscroll.** `capture-form`'s `goToPath()` sets a one-shot `jumpToBottom` flag on save (the single new-meal path — text meals route through here too) → Path smooth-scrolls to bottom to reveal the new meal.
+- **Edited-time autoscroll (`235386c`).** `meal/edit` sets `focusMealId` when `eatenAt` changed; `MealRow` forwards its row View (`innerRef` → `DaySection.registerRow` → a Map on the Path screen), and `scrollToMeal` uses `measureLayout` against the ScrollView inner node to smooth-scroll to the meal's new timeline spot.
+- **🩹 Edge-swipe-back remount fix (`e6bbca7`).** Android's predictive/edge-swipe back gesture **recreates the Path screen**, which reset an in-component `didInitialScroll` ref → re-ran first-mount `scrollToEnd` → snapped to bottom (in-app back button did a plain pop, so it worked). Fix: moved `savedOffset` + `initialized` into `pathScrollStore` (survives remount) and restore the offset explicitly; the bottom-snap is now gated by `initialized`, which a remount can't reset. `onContentSizeChange` re-applies the pending restore within a 600ms window to cover layout-after-focus on remount. **Diagnosis ~85% (bottom-jump = our scrollToEnd ran = remount); needs an on-device edge-swipe test to confirm.**
+- **Status:** committed + pushed (HEAD `e6bbca7`), web auto-deployed. **Pure JS → ship to the phone with `eas update --branch preview`** (no rebuild). Gesture behavior NOT yet verified on device.
 
 ## ✅ Shipped + REBUILT 2026-06-08..18 — meal photo performance (native; now installed)
 - Users reported slow photo loads + laggy Path scrolling. Photos are remote PNG **signed URLs** (stable, 1-yr TTL), uploaded full-resolution with no caching on render. Two fixes (`5d10072`):
@@ -30,8 +33,8 @@ Everything below the divider is detailed history; this block is the live state.
 - **Still worth an on-device sanity pass** (newly activated native changes from this rebuild): Insights drag-reorder (Reanimated/DraggableFlatList, no crash), native photo-meal upload → web sync, Jalali wheel in FA, sync pill only flashing "Saving…".
 
 ## Repo / deploy
-- Git HEAD = **`4e072c4`** ("Restore Path scroll position; add jump-to-latest button + new-meal autoscroll"), `main` is in sync with `origin/main`. Nothing uncommitted.
-- **Installed APK** was rebuilt from ~`5d10072` (meal-photo optimization) — it bakes in `expo-image` + `expo-image-manipulator` and has OTA enabled. JS-only commits since (`4e072c4`) reach it via `eas update --branch preview`.
+- Git HEAD = **`e6bbca7`** ("Path: make scroll restore survive an edge-swipe-back remount"), `main` is in sync with `origin/main`. Nothing uncommitted.
+- **Installed APK** was rebuilt from ~`5d10072` (meal-photo optimization) — it bakes in `expo-image` + `expo-image-manipulator` and has OTA enabled. JS-only commits since (Path scroll UX through `e6bbca7`) reach it via `eas update --branch preview` — **not yet pushed OTA / verified on device.**
 - **Vercel web app is LIVE and fully current** (auto-deploys from `main`): https://the-may-seven.vercel.app
 - GitHub: https://github.com/avaiii1485/the-may  · Supabase project ref `lobvpaqhgephjyeiupng` · Expo account `ava8y`, EAS projectId `8110698b-35bf-4179-b4e7-de5b4decf364`.
 - `.env.local` (gitignored) holds the Supabase URL + anon key. Same keys are set as EAS env vars (all 3 envs) and in Vercel.
