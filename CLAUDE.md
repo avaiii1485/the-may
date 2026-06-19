@@ -1,5 +1,9 @@
 # CLAUDE.md
 
+## Communication
+
+- Start every response to the user with their name (Ava), e.g. "Ava, …".
+
 ## Project Overview
 
 **The May** — a mindful-eating app. Users log meals (photo or text-only) with short reflection Q&As, mark each as on-path or off-path against a chosen "focus", and see their patterns surfaced as insights. Three tabs: **Path** (orange timeline), **Capture** (logging), **Insights** (analytics). Bilingual English / فارسی with full RTL.
