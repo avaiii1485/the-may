@@ -49,7 +49,7 @@ export default function TextMealScreen(): JSX.Element {
           className="w-10 h-10 items-center justify-center"
           accessibilityLabel="Back"
         >
-          <ChevronLeft size={24} color={dark ? '#D2C3AF' : '#0F172A'} />
+          <ChevronLeft size={24} color={dark ? '#7FA37B' : '#0F172A'} />
         </Pressable>
         <Text className="text-lg font-bold text-ink">{t('text.title')}</Text>
         <Pressable

@@ -142,7 +142,7 @@ export default function MealSummaryScreen(): JSX.Element {
         <View
           className="rounded-3xl p-4 mb-4 flex-row items-center"
           style={{
-            backgroundColor: '#FCEBD3',
+            backgroundColor: dark ? '#8A7860' : '#FCEBD3',
             shadowColor: '#D6791F',
             shadowOpacity: 0.12,
             shadowRadius: 14,
@@ -299,7 +299,7 @@ export default function MealSummaryScreen(): JSX.Element {
           onPress={() => router.push(`/meal/edit/${meal.id}` as Parameters<typeof router.push>[0])}
           className="flex-row items-center justify-center rounded-full py-4"
           style={{
-            backgroundColor: '#F39C3D',
+            backgroundColor: dark ? '#8A7860' : '#F39C3D',
             shadowColor: '#D6791F',
             shadowOpacity: 0.3,
             shadowRadius: 12,

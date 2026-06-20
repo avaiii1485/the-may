@@ -159,7 +159,7 @@ export default function DayRecapScreen(): JSX.Element {
         <View
           ref={cardRef}
           collapsable={false}
-          className="mx-4 rounded-2xl overflow-hidden bg-white dark:bg-[#241B12] border border-slate-200"
+          className="mx-4 rounded-2xl overflow-hidden bg-white dark:bg-[#8A7860] border border-slate-200"
         >
           <View className="items-center py-4 px-4">
             <Text className="text-ink text-base font-bold">{full}</Text>

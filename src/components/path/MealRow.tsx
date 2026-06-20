@@ -47,7 +47,7 @@ export function MealRow({ meal, prevEatenAt, onPress, innerRef }: Props): JSX.El
             bottom: 0,
             width: 1.5,
             marginLeft: -0.75,
-            backgroundColor: GHOST_GRAY,
+            backgroundColor: dark ? '#8A7860' : GHOST_GRAY,
             borderRadius: 1,
           }}
         />

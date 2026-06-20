@@ -52,7 +52,7 @@ export default function SettingsScreen(): JSX.Element {
           className="w-10 h-10 items-center justify-center"
           accessibilityLabel="Close"
         >
-          <X size={22} color={dark ? '#D2C3AF' : '#0F172A'} />
+          <X size={22} color={dark ? '#7FA37B' : '#0F172A'} />
         </Pressable>
         <Text className="text-lg font-bold text-ink">{t('settings.currentFocus')}</Text>
         <View className="w-10" />

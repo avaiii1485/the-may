@@ -24,9 +24,11 @@ import { startOfDay } from '@/lib/time';
 import { useAuthStore } from '@/stores/authStore';
 import { useAuthPromptStore } from '@/stores/authPromptStore';
 import { usePathScrollStore } from '@/stores/pathScrollStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 export default function PathScreen(): JSX.Element {
   const { t } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const { data: meals } = useMeals();
   const { goal } = useGoal();
   const today = startOfDay(new Date());
@@ -215,7 +217,7 @@ export default function PathScreen(): JSX.Element {
             width: 44,
             height: 44,
             borderRadius: 22,
-            backgroundColor: '#F39C3D',
+            backgroundColor: dark ? '#8A7860' : '#F39C3D',
             alignItems: 'center',
             justifyContent: 'center',
             shadowColor: '#0F172A',

@@ -9,6 +9,7 @@ import {
   SEGMENT_HEIGHT,
   TIME_COL_WIDTH,
 } from './pathConstants';
+import { useThemeStore } from '@/stores/themeStore';
 
 interface Props {
   fromOnPath: boolean;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function ConnectorRow({ fromOnPath, toOnPath }: Props): JSX.Element {
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const fromX = fromOnPath ? CENTER_X_PCT : OFF_PATH_X_PCT;
   const toX = toOnPath ? CENTER_X_PCT : OFF_PATH_X_PCT;
   const h = SEGMENT_HEIGHT;
@@ -33,7 +35,7 @@ export function ConnectorRow({ fromOnPath, toOnPath }: Props): JSX.Element {
           {/* Gray ghost line straight down through the center */}
           <Path
             d={`M ${CENTER_X_PCT} 0 L ${CENTER_X_PCT} ${h}`}
-            stroke={GHOST_GRAY}
+            stroke={dark ? '#8A7860' : GHOST_GRAY}
             strokeWidth={1.5}
             strokeLinecap="round"
             fill="none"

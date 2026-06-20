@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { useI18n } from '@/i18n';
 import { addDays, startOfDay } from '@/lib/time';
+import { useThemeStore } from '@/stores/themeStore';
 import type { Meal } from '@/types/meal';
 
 const WEEKS = 12;
@@ -37,9 +38,9 @@ function toIsoDate(d: Date): string {
   return `${y}-${m}-${dd}`;
 }
 
-function colorForDay(b: DayBucket): string {
+function colorForDay(b: DayBucket, emptyColor: string): string {
   if (b.isFuture) return COLORS.future;
-  if (b.count === 0) return COLORS.empty;
+  if (b.count === 0) return emptyColor;
   if (b.pct >= 0.75) return COLORS.q4;
   if (b.pct >= 0.5) return COLORS.q3;
   if (b.pct >= 0.25) return COLORS.q2;
@@ -48,6 +49,8 @@ function colorForDay(b: DayBucket): string {
 
 export function CalendarHeatmap({ meals }: Props): JSX.Element {
   const { t } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
+  const emptyColor = dark ? '#D2C3AF' : COLORS.empty;
   const today = startOfDay(new Date());
   const dayOfWeekMonStart = (today.getDay() + 6) % 7;
   const gridStart = addDays(today, -((WEEKS - 1) * 7 + dayOfWeekMonStart));
@@ -115,7 +118,7 @@ export function CalendarHeatmap({ meals }: Props): JSX.Element {
                       width: CELL_SIZE,
                       height: CELL_SIZE,
                       borderRadius: 4,
-                      backgroundColor: colorForDay(cell),
+                      backgroundColor: colorForDay(cell, emptyColor),
                       marginRight: GAP,
                     }}
                   />
@@ -128,7 +131,7 @@ export function CalendarHeatmap({ meals }: Props): JSX.Element {
 
       <View className="flex-row items-center justify-end mt-3">
         <Text className="text-[10px] text-ink-mute mr-2">{t('ins.less')}</Text>
-        {[COLORS.empty, COLORS.q1, COLORS.q2, COLORS.q3, COLORS.q4].map((c, i) => (
+        {[emptyColor, COLORS.q1, COLORS.q2, COLORS.q3, COLORS.q4].map((c, i) => (
           <View
             key={i}
             style={{
