@@ -12,18 +12,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Tokens below are driven by CSS variables (see global.css) so they flip
+        // between light and dark with the `dark` class. Fixed hex values (path
+        // orange, sage, accents) read fine on both themes and stay constant.
         path: {
           DEFAULT: '#F39C3D',
           dark: '#D6791F',
-          soft: '#FCEBD3',
+          soft: 'rgb(var(--path-soft) / <alpha-value>)',
         },
         ink: {
-          DEFAULT: '#0F172A',
-          soft: '#475569',
-          mute: '#94A3B8',
+          DEFAULT: 'rgb(var(--ink) / <alpha-value>)',
+          soft: 'rgb(var(--ink-soft) / <alpha-value>)',
+          mute: 'rgb(var(--ink-mute) / <alpha-value>)',
         },
         bubble: {
-          bg: '#F1F5F9',
+          bg: 'rgb(var(--bubble-bg) / <alpha-value>)',
           active: '#7FA37B',
           activeText: '#FFFFFF',
         },
@@ -35,13 +38,20 @@ module.exports = {
           yellow: '#F4C04C',
         },
         bg: {
-          DEFAULT: '#FFFFFF',
-          card: '#FFFCF7',
+          DEFAULT: 'rgb(var(--bg) / <alpha-value>)',
+          card: 'rgb(var(--bg-card) / <alpha-value>)',
         },
         // Soft creamy app background — warm, classy, brightens every screen.
         cream: {
-          DEFAULT: '#FCF6EE',
-          deep: '#F6EAD8',
+          DEFAULT: 'rgb(var(--cream) / <alpha-value>)',
+          deep: 'rgb(var(--cream-deep) / <alpha-value>)',
+        },
+        // Only the two hairline shades the app uses for borders are overridden,
+        // so existing border-slate-100/200 flip in dark too. Other slate shades
+        // keep Tailwind's defaults.
+        slate: {
+          100: 'rgb(var(--line) / <alpha-value>)',
+          200: 'rgb(var(--line-strong) / <alpha-value>)',
         },
       },
       fontFamily: {

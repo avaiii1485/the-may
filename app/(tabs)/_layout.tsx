@@ -3,9 +3,11 @@ import { Lightbulb, Plus } from 'lucide-react-native';
 import { View } from 'react-native';
 import { PathSquiggle } from '@/components/icons/PathSquiggle';
 import { useI18n } from '@/i18n';
+import { useThemeStore } from '@/stores/themeStore';
 
 export default function TabsLayout(): JSX.Element {
   const { t } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   return (
     <Tabs
       screenOptions={{
@@ -15,15 +17,15 @@ export default function TabsLayout(): JSX.Element {
           height: 72,
           paddingTop: 8,
           paddingBottom: 12,
-          backgroundColor: '#FFFCF7',
-          borderTopColor: '#F0E2CE',
+          backgroundColor: dark ? '#241B12' : '#FFFCF7',
+          borderTopColor: dark ? '#33271A' : '#F0E2CE',
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
         },
         tabBarActiveTintColor: '#D6791F',
-        tabBarInactiveTintColor: '#C4A98A',
+        tabBarInactiveTintColor: dark ? '#8A7860' : '#C4A98A',
       }}
     >
       <Tabs.Screen
