@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { useThemeStore } from '@/stores/themeStore';
 import { DonutChart, type DonutSlice } from './DonutChart';
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 // A donut + legend where tapping a legend item or a slice updates the center
 // percentage, label, and color to the selected slice.
 export function DonutInsightCard({ slices, labelFor }: Props): JSX.Element {
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const [selected, setSelected] = useState(0);
   const label = (s: DonutSlice): string => (labelFor ? labelFor(s) : s.label);
 
@@ -36,7 +38,7 @@ export function DonutInsightCard({ slices, labelFor }: Props): JSX.Element {
               <View style={{ backgroundColor: s.color, width: 10, height: 10, borderRadius: 5 }} />
               <Text
                 className={`ml-2 ${isActive ? 'font-bold' : ''}`}
-                style={{ color: isActive ? s.color : '#0F172A' }}
+                style={{ color: isActive ? s.color : dark ? '#D2C3AF' : '#0F172A' }}
               >
                 {label(s)}
               </Text>

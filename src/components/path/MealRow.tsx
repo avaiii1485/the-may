@@ -12,6 +12,7 @@ import {
 } from './pathConstants';
 import { useI18n } from '@/i18n';
 import { formatTimeOfDay, gapBetween } from '@/lib/time';
+import { useThemeStore } from '@/stores/themeStore';
 import type { Meal } from '@/types/meal';
 
 interface Props {
@@ -26,6 +27,7 @@ const DOT_SIZE = 10;
 
 export function MealRow({ meal, prevEatenAt, onPress, innerRef }: Props): JSX.Element {
   const { d } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const xPct = meal.onPath ? CENTER_X_PCT : OFF_PATH_X_PCT;
   const time = d(formatTimeOfDay(meal.eatenAt));
   const gap = prevEatenAt ? d(gapBetween(prevEatenAt, meal.eatenAt)) : null;
@@ -64,7 +66,7 @@ export function MealRow({ meal, prevEatenAt, onPress, innerRef }: Props): JSX.El
             marginLeft: -CARD_SIZE / 2,
             borderRadius: 18,
             overflow: 'hidden',
-            backgroundColor: '#FFFFFF',
+            backgroundColor: dark ? '#241B12' : '#FFFFFF',
             shadowColor: '#0F172A',
             shadowOpacity: 0.1,
             shadowRadius: 10,

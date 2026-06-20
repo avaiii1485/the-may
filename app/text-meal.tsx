@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DateTimeRow } from '@/components/capture/DateTimeRow';
 import { useI18n } from '@/i18n';
 import { useCaptureDraftStore } from '@/stores/captureDraftStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 function nowIso(): string {
   // Keep seconds so same-minute entries order correctly; UI shows only HH:MM.
@@ -14,6 +15,7 @@ function nowIso(): string {
 
 export default function TextMealScreen(): JSX.Element {
   const { t } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const setTextContent = useCaptureDraftStore((s) => s.setTextContent);
   const setEatenAt = useCaptureDraftStore((s) => s.setEatenAt);
   const setPhotoUri = useCaptureDraftStore((s) => s.setPhotoUri);
@@ -47,7 +49,7 @@ export default function TextMealScreen(): JSX.Element {
           className="w-10 h-10 items-center justify-center"
           accessibilityLabel="Back"
         >
-          <ChevronLeft size={24} color="#0F172A" />
+          <ChevronLeft size={24} color={dark ? '#D2C3AF' : '#0F172A'} />
         </Pressable>
         <Text className="text-lg font-bold text-ink">{t('text.title')}</Text>
         <Pressable
@@ -83,12 +85,12 @@ export default function TextMealScreen(): JSX.Element {
             value={text}
             onChangeText={setText}
             placeholder={t('text.placeholder')}
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={dark ? '#8A7860' : '#94A3B8'}
             className="flex-1 text-ink text-2xl font-bold"
             autoFocus
             multiline
           />
-          <Pencil size={18} color="#94A3B8" />
+          <Pencil size={18} color={dark ? '#8A7860' : '#94A3B8'} />
         </View>
         <Text className="text-ink-mute text-xs mt-3">
           {t('text.hint')}

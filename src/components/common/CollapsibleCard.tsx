@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Pressable, Text, View } from 'react-native';
 import { useI18n } from '@/i18n';
 import { usePinnedInsightsStore } from '@/stores/pinnedInsightsStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 interface Props {
   id: string;
@@ -30,6 +31,7 @@ export function CollapsibleCard({
   onLongPress,
 }: Props): JSX.Element {
   const { t, isRTL } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const pinned = usePinnedInsightsStore((s) => s.pinned.includes(id));
   const togglePin = usePinnedInsightsStore((s) => s.toggle);
 
@@ -90,7 +92,7 @@ export function CollapsibleCard({
           accessibilityLabel={`${title} options`}
           hitSlop={6}
         >
-          <MoreHorizontal size={18} color="#94A3B8" />
+          <MoreHorizontal size={18} color={dark ? '#8A7860' : '#94A3B8'} />
         </Pressable>
 
         <Pressable
@@ -100,9 +102,9 @@ export function CollapsibleCard({
           accessibilityLabel={open ? 'Collapse' : 'Expand'}
         >
           {open ? (
-            <ChevronUp size={18} color="#94A3B8" />
+            <ChevronUp size={18} color={dark ? '#8A7860' : '#94A3B8'} />
           ) : (
-            <ChevronDown size={18} color="#94A3B8" />
+            <ChevronDown size={18} color={dark ? '#8A7860' : '#94A3B8'} />
           )}
         </Pressable>
       </View>
@@ -124,10 +126,10 @@ export function CollapsibleCard({
               ...(isRTL ? { left: 8 } : { right: 8 }),
               zIndex: 30,
               minWidth: 140,
-              backgroundColor: '#FFFFFF',
+              backgroundColor: dark ? '#241B12' : '#FFFFFF',
               borderRadius: 12,
               borderWidth: 1,
-              borderColor: '#E2E8F0',
+              borderColor: dark ? '#33271A' : '#E2E8F0',
               shadowColor: '#0F172A',
               shadowOpacity: 0.12,
               shadowRadius: 12,
@@ -145,7 +147,11 @@ export function CollapsibleCard({
               accessibilityRole="button"
               accessibilityLabel={pinned ? t('ins.unpin') : t('ins.pin')}
             >
-              {pinned ? <PinOff size={16} color="#0F172A" /> : <Pin size={16} color="#0F172A" />}
+              {pinned ? (
+                <PinOff size={16} color={dark ? '#D2C3AF' : '#0F172A'} />
+              ) : (
+                <Pin size={16} color={dark ? '#D2C3AF' : '#0F172A'} />
+              )}
               <Text className="text-ink font-semibold ml-3">
                 {pinned ? t('ins.unpin') : t('ins.pin')}
               </Text>

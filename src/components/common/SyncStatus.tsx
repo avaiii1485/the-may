@@ -5,12 +5,14 @@ import { isSupabaseConfigured } from '@/lib/supabase';
 import { LOCAL_USER_ID, useAuthStore } from '@/stores/authStore';
 import { useOutboxStore } from '@/stores/outboxStore';
 import { useSyncStatusStore } from '@/stores/syncStatusStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 // Small pill showing the user's backup status — only while there's something to
 // report (Saving… while syncing, Offline / Pending while changes are queued).
 // Stays hidden at rest so the steady "Synced" state doesn't clutter the header.
 export function SyncStatus(): JSX.Element | null {
   const { t } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const userId = useAuthStore((s) => s.userId);
   const syncing = useSyncStatusStore((s) => s.syncing);
   const pending = useOutboxStore((s) => s.ops.length);
@@ -31,13 +33,13 @@ export function SyncStatus(): JSX.Element | null {
     label = t('sync.saving');
     color = '#7FA37B';
   } else if (pending > 0 && !online) {
-    icon = <CloudOff size={12} color="#94A3B8" />;
+    icon = <CloudOff size={12} color={dark ? '#8A7860' : '#94A3B8'} />;
     label = t('sync.offline');
-    color = '#94A3B8';
+    color = dark ? '#8A7860' : '#94A3B8';
   } else {
-    icon = <RefreshCw size={12} color="#94A3B8" />;
+    icon = <RefreshCw size={12} color={dark ? '#8A7860' : '#94A3B8'} />;
     label = t('sync.pending');
-    color = '#94A3B8';
+    color = dark ? '#8A7860' : '#94A3B8';
   }
 
   return (

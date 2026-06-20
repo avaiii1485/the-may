@@ -15,6 +15,7 @@ import {
 import { claimLocalMeals } from '@/lib/mealClaim';
 import { LOCAL_USER_ID, useAuthStore } from '@/stores/authStore';
 import { useAuthPromptStore } from '@/stores/authPromptStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 interface AuthedUserLite {
   id: string;
@@ -39,6 +40,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function AuthScreen(): JSX.Element {
   const { t } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const setDismissed = useAuthPromptStore((s) => s.setDismissed);
   const recovery = useAuthStore((s) => s.recovery);
   const setRecovery = useAuthStore((s) => s.setRecovery);
@@ -184,7 +186,7 @@ export default function AuthScreen(): JSX.Element {
               value={password}
               onChangeText={setPassword}
               placeholder={t('auth.passwordPh')}
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={dark ? '#8A7860' : '#94A3B8'}
               secureTextEntry
               autoCapitalize="none"
               className="text-ink text-base py-3 px-4 rounded-2xl bg-bg-card"
@@ -225,7 +227,7 @@ export default function AuthScreen(): JSX.Element {
             value={email}
             onChangeText={setEmail}
             placeholder={t('auth.emailPh')}
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={dark ? '#8A7860' : '#94A3B8'}
             autoCapitalize="none"
             keyboardType="email-address"
             className="text-ink text-base py-3 px-4 rounded-2xl bg-bg-card"
@@ -240,7 +242,7 @@ export default function AuthScreen(): JSX.Element {
             value={password}
             onChangeText={setPassword}
             placeholder={t('auth.passwordPh')}
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={dark ? '#8A7860' : '#94A3B8'}
             secureTextEntry
             autoCapitalize="none"
             className="text-ink text-base py-3 px-4 rounded-2xl bg-bg-card"
@@ -279,7 +281,7 @@ export default function AuthScreen(): JSX.Element {
         <Pressable
           onPress={onGoogle}
           disabled={busy}
-          className="rounded-full py-4 items-center flex-row justify-center bg-white border border-slate-200"
+          className="rounded-full py-4 items-center flex-row justify-center bg-white dark:bg-[#241B12] border border-slate-200"
           accessibilityRole="button"
           accessibilityLabel={t('auth.google')}
         >

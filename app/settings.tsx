@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useI18n } from '@/i18n';
 import { useGoal, useSetGoal } from '@/hooks/useProfile';
+import { useThemeStore } from '@/stores/themeStore';
 
 const PRESET_GOALS: readonly string[] = [
   'Eating from smaller plates',
@@ -21,6 +22,7 @@ const PRESET_GOALS: readonly string[] = [
 
 export default function SettingsScreen(): JSX.Element {
   const { t, tv } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const { goal } = useGoal();
   const setGoal = useSetGoal();
   const [custom, setCustom] = useState('');
@@ -50,7 +52,7 @@ export default function SettingsScreen(): JSX.Element {
           className="w-10 h-10 items-center justify-center"
           accessibilityLabel="Close"
         >
-          <X size={22} color="#0F172A" />
+          <X size={22} color={dark ? '#D2C3AF' : '#0F172A'} />
         </Pressable>
         <Text className="text-lg font-bold text-ink">{t('settings.currentFocus')}</Text>
         <View className="w-10" />
@@ -88,7 +90,7 @@ export default function SettingsScreen(): JSX.Element {
                 {isActive ? (
                   <Check size={20} color="#D6791F" />
                 ) : (
-                  <ChevronRight size={20} color="#94A3B8" />
+                  <ChevronRight size={20} color={dark ? '#8A7860' : '#94A3B8'} />
                 )}
               </Pressable>
             );
@@ -104,11 +106,11 @@ export default function SettingsScreen(): JSX.Element {
               value={custom}
               onChangeText={setCustom}
               placeholder={t('settings.ownPlaceholder')}
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={dark ? '#8A7860' : '#94A3B8'}
               className="flex-1 text-ink text-base"
               multiline
             />
-            <Pencil size={16} color="#94A3B8" />
+            <Pencil size={16} color={dark ? '#8A7860' : '#94A3B8'} />
           </View>
           <Pressable
             onPress={saveCustom}

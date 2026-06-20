@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useI18n } from '@/i18n';
 import { detectInsights } from '@/lib/patternDetector';
+import { useThemeStore } from '@/stores/themeStore';
 import type { Meal } from '@/types/meal';
 
 interface Props {
@@ -13,6 +14,7 @@ const VISIBLE_COUNT = 5;
 
 export function PatternCard({ meals }: Props): JSX.Element {
   const { t, lang, isRTL } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const insights = useMemo(
     () => detectInsights(meals, lang).slice(0, VISIBLE_COUNT),
     [meals, lang],
@@ -56,7 +58,8 @@ export function PatternCard({ meals }: Props): JSX.Element {
                   height: 6,
                   borderRadius: 3,
                   marginRight: 4,
-                  backgroundColor: i === idx % insights.length ? '#0F172A' : '#CBD5E1',
+                  backgroundColor:
+                    i === idx % insights.length ? (dark ? '#D2C3AF' : '#0F172A') : '#CBD5E1',
                 }}
               />
             ))}

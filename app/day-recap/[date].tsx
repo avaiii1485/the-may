@@ -15,6 +15,7 @@ import {
   pctOnPath,
 } from '@/lib/dayGroup';
 import { isSameLocalDay, startOfDay } from '@/lib/time';
+import { useThemeStore } from '@/stores/themeStore';
 
 function parseDateParam(raw: string | string[] | undefined): Date | null {
   const value = typeof raw === 'string' ? raw : Array.isArray(raw) ? raw[0] : undefined;
@@ -28,6 +29,7 @@ function parseDateParam(raw: string | string[] | undefined): Date | null {
 
 export default function DayRecapScreen(): JSX.Element {
   const { t, d: dg, lang } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const params = useLocalSearchParams<{ date: string }>();
   const { data: meals } = useMeals();
   const date = parseDateParam(params.date);
@@ -45,7 +47,7 @@ export default function DayRecapScreen(): JSX.Element {
 
   if (!date) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-white dark:bg-[#241B12]" edges={['top']}>
         <View className="items-center justify-center flex-1">
           <Text className="text-ink-soft">{t('recap.badDate')}</Text>
           <Pressable onPress={() => router.back()} className="mt-4 px-4 py-2">
@@ -116,7 +118,7 @@ export default function DayRecapScreen(): JSX.Element {
           width: '100%',
           maxWidth: 420,
           maxHeight: '88%',
-          backgroundColor: '#FFFFFF',
+          backgroundColor: dark ? '#241B12' : '#FFFFFF',
           borderRadius: 24,
           overflow: 'hidden',
         }}
@@ -127,7 +129,7 @@ export default function DayRecapScreen(): JSX.Element {
             className="w-10 h-10 items-center justify-center"
             accessibilityLabel={t('common.close')}
           >
-            <X size={24} color="#0F172A" />
+            <X size={24} color={dark ? '#D2C3AF' : '#0F172A'} />
           </Pressable>
           <View className="w-10" />
         </View>
@@ -146,7 +148,7 @@ export default function DayRecapScreen(): JSX.Element {
                 borderRadius: 5,
                 borderWidth: 2,
                 borderColor: '#F39C3D',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: dark ? '#241B12' : '#FFFFFF',
               }}
             />
             <View style={{ width: 2, height: 22, backgroundColor: '#F39C3D' }} />
@@ -157,7 +159,7 @@ export default function DayRecapScreen(): JSX.Element {
         <View
           ref={cardRef}
           collapsable={false}
-          className="mx-4 rounded-2xl overflow-hidden bg-white border border-slate-200"
+          className="mx-4 rounded-2xl overflow-hidden bg-white dark:bg-[#241B12] border border-slate-200"
         >
           <View className="items-center py-4 px-4">
             <Text className="text-ink text-base font-bold">{full}</Text>
@@ -167,7 +169,7 @@ export default function DayRecapScreen(): JSX.Element {
           <DayCollage meals={dayMeals} />
 
           {/* Stats row */}
-          <View className="flex-row py-5 bg-white">
+          <View className="flex-row py-5 bg-white dark:bg-[#241B12]">
             <View className="flex-1 items-center px-1">
               <Text
                 className="text-ink text-lg font-extrabold text-center"

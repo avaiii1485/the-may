@@ -93,7 +93,7 @@ export function BadgeCelebration(): JSX.Element | null {
           setCelebrating(null);
           router.push(`/badges?focus=${id}` as Parameters<typeof router.push>[0]);
         }}
-        className="flex-row items-center bg-white rounded-2xl px-4 py-3"
+        className="flex-row items-center bg-white dark:bg-[#241B12] rounded-2xl px-4 py-3"
         style={{
           shadowColor: '#0F172A',
           shadowOpacity: 0.18,

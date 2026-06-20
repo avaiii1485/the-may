@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, PanResponder, Text, View } from 'react-native';
+import { useThemeStore } from '@/stores/themeStore';
 
 export const ITEM_H = 30;
 export const VISIBLE = 5;
@@ -22,6 +23,7 @@ interface Props {
 // the vertical drag itself — fixing the root problem that a ScrollView nested in
 // the form's ScrollView couldn't scroll on Android. Pure JS → OTA-safe.
 export function Wheel({ data, index, onIndexChange, loop = false, width = 56 }: Props): JSX.Element {
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const n = data.length;
   const pos = useRef(new Animated.Value(index)).current; // continuous position (in items)
   const posVal = useRef(index); // latest numeric pos
@@ -127,7 +129,7 @@ export function Wheel({ data, index, onIndexChange, loop = false, width = 56 }: 
           style={{
             fontSize: selected ? 17 : 14,
             fontWeight: selected ? '700' : '400',
-            color: selected ? '#0F172A' : '#94A3B8',
+            color: selected ? (dark ? '#D2C3AF' : '#0F172A') : dark ? '#8A7860' : '#94A3B8',
           }}
         >
           {label}

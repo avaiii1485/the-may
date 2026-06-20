@@ -4,6 +4,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { BadgeIcon } from './BadgeIcon';
 import { useI18n } from '@/i18n';
 import type { ResolvedBadge } from '@/lib/badges';
+import { useThemeStore } from '@/stores/themeStore';
 
 interface Props {
   badges: ResolvedBadge[];
@@ -11,6 +12,7 @@ interface Props {
 
 export function BadgeStrip({ badges }: Props): JSX.Element {
   const { t, d } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const earnedCount = badges.filter((b) => b.progress.earned).length;
   // Order: earned first (newest by id position), then locked sorted by progress desc.
   const sorted = [...badges].sort((a, b) => {
@@ -32,7 +34,7 @@ export function BadgeStrip({ badges }: Props): JSX.Element {
           <Text className="text-ink-soft text-sm font-bold mr-1">
             {d(earnedCount)} {t('badges.of')} {d(badges.length)}
           </Text>
-          <ChevronRight size={16} color="#94A3B8" />
+          <ChevronRight size={16} color={dark ? '#8A7860' : '#94A3B8'} />
         </View>
       </View>
       <ScrollView

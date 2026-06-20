@@ -9,6 +9,7 @@ import {
   weekStats,
 } from '@/lib/weekCompare';
 import { useI18n } from '@/i18n';
+import { useThemeStore } from '@/stores/themeStore';
 import type { Meal } from '@/types/meal';
 
 interface Props {
@@ -32,8 +33,9 @@ function StatBlock({
   vsLabel,
   betterIs,
 }: StatBlockProps): JSX.Element {
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const isFlat = delta === 0;
-  let color = '#94A3B8';
+  let color = dark ? '#8A7860' : '#94A3B8';
   if (!isFlat && betterIs === 'higher') {
     color = delta > 0 ? '#34C9A2' : '#F25C8B';
   }

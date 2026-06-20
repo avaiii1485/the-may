@@ -10,6 +10,7 @@ import { useI18n } from '@/i18n';
 import { useMeal, useUpdateMeal } from '@/hooks/useMeals';
 import { useQuestions } from '@/hooks/useQuestions';
 import { usePathScrollStore } from '@/stores/pathScrollStore';
+import { useThemeStore } from '@/stores/themeStore';
 import { type FeelingLevel, type Meal } from '@/types/meal';
 
 interface FormState {
@@ -42,6 +43,7 @@ function fromMeal(m: Meal): FormState {
 
 export default function MealEditScreen(): JSX.Element {
   const { t } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const params = useLocalSearchParams<{ id: string }>();
   const id =
     typeof params.id === 'string'
@@ -123,7 +125,7 @@ export default function MealEditScreen(): JSX.Element {
           className="w-10 h-10 items-center justify-center"
           accessibilityLabel="Cancel"
         >
-          <X size={24} color="#0F172A" />
+          <X size={24} color={dark ? '#D2C3AF' : '#0F172A'} />
         </Pressable>
         <Text className="text-lg font-bold text-ink">{t('meal.editTitle')}</Text>
         <Pressable
@@ -149,7 +151,7 @@ export default function MealEditScreen(): JSX.Element {
           />
         ) : meal.textContent ? (
           <View
-            className="w-full aspect-square rounded-2xl mb-4 items-center justify-center bg-white"
+            className="w-full aspect-square rounded-2xl mb-4 items-center justify-center bg-white dark:bg-[#241B12]"
             style={{
               shadowColor: '#0F172A',
               shadowOpacity: 0.08,
@@ -157,7 +159,7 @@ export default function MealEditScreen(): JSX.Element {
               shadowOffset: { width: 0, height: 2 },
               elevation: 2,
               borderWidth: 1,
-              borderColor: '#E2E8F0',
+              borderColor: dark ? '#33271A' : '#E2E8F0',
             }}
           >
             <Text className="text-ink text-center text-2xl font-bold px-8" numberOfLines={6}>
@@ -213,11 +215,11 @@ export default function MealEditScreen(): JSX.Element {
               value={form.note}
               onChangeText={(v) => set('note', v)}
               placeholder={t('capture.addNotes')}
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={dark ? '#8A7860' : '#94A3B8'}
               className="flex-1 text-ink"
               multiline
             />
-            <Pencil size={16} color="#94A3B8" />
+            <Pencil size={16} color={dark ? '#8A7860' : '#94A3B8'} />
           </View>
         </View>
 

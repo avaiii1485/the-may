@@ -9,6 +9,7 @@ import { useMeals } from '@/hooks/useMeals';
 import { useGoal } from '@/hooks/useProfile';
 import { getAllBadges, type ResolvedBadge } from '@/lib/badges';
 import { useProfileStore } from '@/stores/profileStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 function BadgeRow({
   badge,
@@ -76,6 +77,7 @@ function BadgeRow({
 
 export default function BadgesScreen(): JSX.Element {
   const { t, d, lang } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const params = useLocalSearchParams<{ focus?: string }>();
   const focusId =
     typeof params.focus === 'string'
@@ -145,7 +147,7 @@ export default function BadgesScreen(): JSX.Element {
           className="w-10 h-10 items-center justify-center"
           accessibilityLabel={t('common.close')}
         >
-          <X size={22} color="#0F172A" />
+          <X size={22} color={dark ? '#D2C3AF' : '#0F172A'} />
         </Pressable>
         <Text className="text-lg font-bold text-ink">{t('badges.title')}</Text>
         <View className="w-10" />

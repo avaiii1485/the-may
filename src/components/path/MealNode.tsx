@@ -1,5 +1,6 @@
 import { Image, Pressable, Text, View } from 'react-native';
 import { formatTimeOfDay, gapBetween } from '@/lib/time';
+import { useThemeStore } from '@/stores/themeStore';
 import type { Meal } from '@/types/meal';
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 const NODE_SIZE = 96;
 
 export function MealNode({ meal, prevEatenAt, onPress }: Props): JSX.Element {
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const offsetClass = meal.onPath ? 'self-center' : 'self-start ml-6';
   const time = formatTimeOfDay(meal.eatenAt);
   const gap = prevEatenAt ? gapBetween(prevEatenAt, meal.eatenAt) : null;
@@ -25,7 +27,7 @@ export function MealNode({ meal, prevEatenAt, onPress }: Props): JSX.Element {
           style={{
             width: NODE_SIZE,
             height: NODE_SIZE,
-            backgroundColor: isTextOnly ? '#FFFFFF' : '#F8FAFC',
+            backgroundColor: dark ? '#241B12' : isTextOnly ? '#FFFFFF' : '#F8FAFC',
             shadowColor: '#0F172A',
             shadowOpacity: 0.08,
             shadowRadius: 8,

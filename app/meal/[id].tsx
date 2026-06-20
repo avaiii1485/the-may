@@ -7,6 +7,7 @@ import { OffPathArrow, OnPathArrow } from '@/components/icons/OnPathArrow';
 import { useI18n, type I18n } from '@/i18n';
 import { useDeleteMeal, useMeal } from '@/hooks/useMeals';
 import { toJalali } from '@/lib/jalali';
+import { useThemeStore } from '@/stores/themeStore';
 import { FEELING_EMOJI } from '@/types/meal';
 
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
@@ -74,6 +75,7 @@ function Row({
 export default function MealSummaryScreen(): JSX.Element {
   const i18n = useI18n();
   const { t, tv } = i18n;
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   const params = useLocalSearchParams<{ id: string }>();
   const id =
     typeof params.id === 'string'
@@ -122,7 +124,7 @@ export default function MealSummaryScreen(): JSX.Element {
           className="w-10 h-10 items-center justify-center"
           accessibilityLabel={t('common.close')}
         >
-          <X size={24} color="#0F172A" />
+          <X size={24} color={dark ? '#D2C3AF' : '#0F172A'} />
         </Pressable>
         <Text className="text-lg font-bold text-ink">{t('meal.title')}</Text>
         <Pressable
@@ -215,7 +217,7 @@ export default function MealSummaryScreen(): JSX.Element {
 
         {hasReflection ? (
           <View
-            className="bg-white rounded-3xl px-5 py-2"
+            className="bg-white dark:bg-[#241B12] rounded-3xl px-5 py-2"
             style={{
               shadowColor: '#0F172A',
               shadowOpacity: 0.06,
@@ -284,7 +286,7 @@ export default function MealSummaryScreen(): JSX.Element {
           </View>
         ) : (
           <View
-            className="bg-white rounded-3xl items-center py-10 px-6"
+            className="bg-white dark:bg-[#241B12] rounded-3xl items-center py-10 px-6"
             style={{ borderWidth: 1, borderColor: '#FCEBD3' }}
           >
             <Text className="text-ink-soft text-center text-sm">{t('meal.noReflections')}</Text>
@@ -326,7 +328,7 @@ export default function MealSummaryScreen(): JSX.Element {
             padding: 24,
           }}
         >
-          <View className="bg-white rounded-3xl p-6 w-full" style={{ maxWidth: 360 }}>
+          <View className="bg-white dark:bg-[#241B12] rounded-3xl p-6 w-full" style={{ maxWidth: 360 }}>
             <Text className="text-ink text-lg font-extrabold text-center mb-1">
               {t('confirm.deleteTitle')}
             </Text>

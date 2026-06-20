@@ -1,6 +1,7 @@
 import { ImageIcon, Type } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { useI18n } from '@/i18n';
+import { useThemeStore } from '@/stores/themeStore';
 
 interface Props {
   visible: boolean;
@@ -13,6 +14,7 @@ interface Props {
 // the recap card (collage + stats + tagline).
 export function ShareChoice({ visible, onTextOnly, onWithPictures, onClose }: Props): JSX.Element | null {
   const { t } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   if (!visible) return null;
 
   return (
@@ -35,7 +37,7 @@ export function ShareChoice({ visible, onTextOnly, onWithPictures, onClose }: Pr
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
         accessibilityLabel={t('common.close')}
       />
-      <View className="bg-white rounded-3xl p-5 w-full" style={{ maxWidth: 360 }}>
+      <View className="bg-white dark:bg-[#241B12] rounded-3xl p-5 w-full" style={{ maxWidth: 360 }}>
         <Text className="text-ink text-base font-extrabold text-center mb-4">
           {t('share.choose')}
         </Text>
@@ -46,7 +48,7 @@ export function ShareChoice({ visible, onTextOnly, onWithPictures, onClose }: Pr
           accessibilityRole="button"
           accessibilityLabel={t('share.textOnly')}
         >
-          <Type size={20} color="#0F172A" />
+          <Type size={20} color={dark ? '#D2C3AF' : '#0F172A'} />
           <Text className="text-ink font-semibold ml-3">{t('share.textOnly')}</Text>
         </Pressable>
 
