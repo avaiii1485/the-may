@@ -1,11 +1,18 @@
 # PROGRESS.md
 
 ## Last Updated
-2026-06-18
+2026-06-19
 
 ---
-# ⭐ HANDOFF / CURRENT STATE (2026-06-18) — read this first
+# ⭐ HANDOFF / CURRENT STATE (2026-06-19) — read this first
 Everything below the divider is detailed history; this block is the live state.
+
+## 🩹 Fixed 2026-06-19 — OTA updates never reached the phone (channel ↔ branch unlinked)
+- **Symptom:** web fully current, but `eas update --branch preview` changes never appeared on the installed app.
+- **Root cause:** updates were published to the **branch** `preview`, but the **channel** `preview` (what the APK subscribes to, per `eas.json`) had an **empty branch mapping** (`branchMapping.data: []`). The app asked the channel, which resolved to no branch → no update served. (Config was otherwise correct: `app.json` `updates.url` + `runtimeVersion.policy: sdkVersion`; published updates are runtime `exposdk:51.0.0`, matching the installed APK.)
+- **Fix (one-time, no rebuild/republish):** `eas channel:edit preview --branch preview`. Verified: channel now maps to branch `preview` with the latest update active (commit `28b28a6`, incl. the edge-swipe remount fix). Future `eas update --branch preview` will now reach devices automatically.
+- **Device behavior to expect:** `fallbackToCacheTimeout` is the default `0`, so the app runs the current bundle and downloads the new one in the background → it applies on a **later cold start** (typically **two full closes/reopens**). The phone must reach `u.expo.dev` to fetch — keep **VPN on** for the update-download launch given the Iran network context.
+- Diagnostics: `eas channel:view preview` (mapping) + `eas update:list --branch preview` (published updates).
 
 ## ✅ Shipped 2026-06-18 — Path-tab scroll UX (JS-only, OTA-able)
 All driven by a runtime-only `src/stores/pathScrollStore.ts`. On focus the Path tab decides, in priority order: new meal saved → bottom; meal time edited → that meal; true first launch → bottom; otherwise → restore saved offset. (`app/(tabs)/index.tsx`)
@@ -33,7 +40,8 @@ All driven by a runtime-only `src/stores/pathScrollStore.ts`. On focus the Path 
 - **Still worth an on-device sanity pass** (newly activated native changes from this rebuild): Insights drag-reorder (Reanimated/DraggableFlatList, no crash), native photo-meal upload → web sync, Jalali wheel in FA, sync pill only flashing "Saving…".
 
 ## Repo / deploy
-- Git HEAD = **`e6bbca7`** ("Path: make scroll restore survive an edge-swipe-back remount"), `main` is in sync with `origin/main`. Nothing uncommitted.
+- Git HEAD = **`b9e9f0d`** ("Docs: start every response with the user's name (Ava)") + this PROGRESS log commit, `main` is in sync with `origin/main`.
+- **OTA channel↔branch link fixed 2026-06-19** (EAS-side, no code change) — `eas update --branch preview` now reaches installed devices. The latest published update (commit `28b28a6`) carries all Path scroll work incl. the edge-swipe remount fix; gesture behavior still to be confirmed on device once the update lands.
 - **Installed APK** was rebuilt from ~`5d10072` (meal-photo optimization) — it bakes in `expo-image` + `expo-image-manipulator` and has OTA enabled. JS-only commits since (Path scroll UX through `e6bbca7`) reach it via `eas update --branch preview` — **not yet pushed OTA / verified on device.**
 - **Vercel web app is LIVE and fully current** (auto-deploys from `main`): https://the-may-seven.vercel.app
 - GitHub: https://github.com/avaiii1485/the-may  · Supabase project ref `lobvpaqhgephjyeiupng` · Expo account `ava8y`, EAS projectId `8110698b-35bf-4179-b4e7-de5b4decf364`.
