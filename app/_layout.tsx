@@ -13,10 +13,13 @@ import { useOtaUpdates } from '@/hooks/useOtaUpdates';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
 import { useI18n } from '@/i18n';
 import { queryClient } from '@/lib/queryClient';
+import { darkThemeVars, lightThemeVars } from '@/lib/themeVars';
+import { useThemeStore } from '@/stores/themeStore';
 import tamaguiConfig from '../tamagui.config';
 
 export default function RootLayout(): JSX.Element {
   const { lang, isRTL } = useI18n();
+  const dark = useThemeStore((s) => s.mode) === 'dark';
   useAuthSession();
   useSyncEngine();
   useOtaUpdates();
@@ -51,9 +54,12 @@ html[lang='fa'], html[lang='fa'] * { font-family:'Samim', system-ui, -apple-syst
       <SafeAreaProvider>
         <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
           <QueryClientProvider client={queryClient}>
-            <StatusBar style="dark" />
+            <StatusBar style={dark ? 'light' : 'dark'} />
             <View
-              style={{ flex: 1, direction: isRTL ? 'rtl' : 'ltr' }}
+              style={[
+                { flex: 1, direction: isRTL ? 'rtl' : 'ltr' },
+                dark ? darkThemeVars : lightThemeVars,
+              ]}
             >
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
