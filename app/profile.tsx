@@ -273,41 +273,6 @@ export default function ProfileScreen(): JSX.Element {
           </View>
         </View>
 
-        {isSupabaseConfigured ? (
-          <View className="px-5 py-4 border-b border-slate-100">
-            <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
-              {t('auth.account')}
-            </Text>
-            {accountEmail ? (
-              <>
-                <Text className="text-ink text-sm mb-3">
-                  {t('auth.signedInAs', { email: accountEmail })}
-                </Text>
-                <Pressable
-                  onPress={() => setLogoutConfirm(true)}
-                  className="rounded-full py-3 items-center bg-bg-card"
-                  accessibilityRole="button"
-                  accessibilityLabel={t('auth.logOut')}
-                >
-                  <Text className="text-ink font-bold tracking-widest">{t('auth.logOut')}</Text>
-                </Pressable>
-              </>
-            ) : (
-              <>
-                <Text className="text-ink-soft text-sm mb-3">{t('auth.anonNote')}</Text>
-                <Pressable
-                  onPress={openSignIn}
-                  className="rounded-full py-3 items-center bg-bubble-active"
-                  accessibilityRole="button"
-                  accessibilityLabel={t('auth.signInCta')}
-                >
-                  <Text className="text-white font-bold tracking-widest">{t('auth.signInCta')}</Text>
-                </Pressable>
-              </>
-            )}
-          </View>
-        ) : null}
-
         <View className="flex-row py-5 border-b border-slate-100">
           <View className="flex-1 items-center px-1">
             <Text className="text-ink text-2xl font-extrabold">{d(stats.total)}</Text>
@@ -397,6 +362,41 @@ export default function ProfileScreen(): JSX.Element {
             <Text className="text-ink text-base">{formatJoined(form.joinedAt)}</Text>
           </View>
         </View>
+
+        {isSupabaseConfigured ? (
+          <View className="px-5 py-4 mt-4 border-t border-slate-100">
+            <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
+              {t('auth.account')}
+            </Text>
+            {accountEmail ? (
+              <>
+                <Text className="text-ink text-sm mb-3">
+                  {t('auth.signedInAs', { email: accountEmail })}
+                </Text>
+                <Pressable
+                  onPress={() => setLogoutConfirm(true)}
+                  className="rounded-full py-3 items-center bg-bg-card"
+                  accessibilityRole="button"
+                  accessibilityLabel={t('auth.logOut')}
+                >
+                  <Text className="text-ink font-bold tracking-widest">{t('auth.logOut')}</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text className="text-ink-soft text-sm mb-3">{t('auth.anonNote')}</Text>
+                <Pressable
+                  onPress={openSignIn}
+                  className="rounded-full py-3 items-center bg-bubble-active"
+                  accessibilityRole="button"
+                  accessibilityLabel={t('auth.signInCta')}
+                >
+                  <Text className="text-white font-bold tracking-widest">{t('auth.signInCta')}</Text>
+                </Pressable>
+              </>
+            )}
+          </View>
+        ) : null}
       </ScrollView>
 
       {logoutConfirm ? (
