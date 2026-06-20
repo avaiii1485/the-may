@@ -1,10 +1,11 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { Camera, Check, X } from 'lucide-react-native';
+import { Camera, Check, Moon, Sun, X } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/common/Avatar';
+import { SlideToggle } from '@/components/common/SlideToggle';
 import { BadgeStrip } from '@/components/profile/BadgeStrip';
 import { useI18n } from '@/i18n';
 import { useMeals } from '@/hooks/useMeals';
@@ -17,6 +18,7 @@ import { LOCAL_USER_ID, useAuthStore } from '@/stores/authStore';
 import { useAuthPromptStore } from '@/stores/authPromptStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { type ProfileData, useProfileStore } from '@/stores/profileStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 const MONTHS_EN = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -34,12 +36,28 @@ function normalizeHandle(raw: string): string {
 export default function ProfileScreen(): JSX.Element {
   const { t, d, lang } = useI18n();
   const setLang = useLanguageStore((s) => s.setLang);
+  const mode = useThemeStore((s) => s.mode);
+  const toggleTheme = useThemeStore((s) => s.toggle);
+  const dark = mode === 'dark';
   const profile = useProfileStore();
   const update = useProfileStore((s) => s.update);
   const { data: meals } = useMeals();
   const accountEmail = useAuthStore((s) => s.email);
   const setAuthDismissed = useAuthPromptStore((s) => s.setDismissed);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
+
+  // Theme-aware values for inline (non-className) colors.
+  const iconColor = dark ? '#D2C3AF' : '#0F172A';
+  const placeholderColor = dark ? '#8B7A66' : '#94A3B8';
+  const trackColor = dark ? '#33271A' : '#E7DCCB';
+  // Calmer avatar header in dark mode: muted taupe circle, soft warm ring, and a
+  // low-key camera badge instead of the bright amber + white ring.
+  const avatarBg = dark ? '#6E5A42' : '#F39C3D';
+  const avatarFg = dark ? '#C7B6A0' : '#FFFFFF';
+  const ringColor = dark ? '#4D3D2A' : '#FFFFFF';
+  const badgeBg = dark ? '#4D3D2A' : '#0F172A';
+  const badgeBorder = dark ? '#2B2014' : '#FFFFFF';
+  const badgeIcon = dark ? '#D2C3AF' : '#FFFFFF';
 
   const onLogout = async () => {
     setLogoutConfirm(false);
@@ -163,16 +181,16 @@ export default function ProfileScreen(): JSX.Element {
     form.bio !== profile.bio;
 
   return (
-    <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-slate-100">
+    <SafeAreaView className="flex-1 bg-cream dark:bg-[#160F09]" edges={['top']}>
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-[#33271A]">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center"
           accessibilityLabel={t('common.close')}
         >
-          <X size={22} color="#0F172A" />
+          <X size={22} color={iconColor} />
         </Pressable>
-        <Text className="text-lg font-bold text-ink">{t('profile.title')}</Text>
+        <Text className="text-lg font-bold text-ink dark:text-[#D2C3AF]">{t('profile.title')}</Text>
         <Pressable
           onPress={onSave}
           disabled={!dirty}
@@ -180,14 +198,18 @@ export default function ProfileScreen(): JSX.Element {
           accessibilityRole="button"
           accessibilityLabel={t('profile.save')}
         >
-          <Text className={`font-bold ${dirty ? 'text-bubble-active' : 'text-ink-mute'}`}>
+          <Text
+            className="font-bold"
+            style={{ color: dirty ? '#7FA37B' : dark ? '#4F5E4D' : '#B4C8B1' }}
+          >
             {t('profile.save')}
           </Text>
         </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        <View className="items-center py-6 bg-path-soft">
+        {/* Header — avatar + name */}
+        <View className="items-center py-6 bg-path-soft dark:bg-[#2B2014]">
           <Pressable
             onPress={pickAvatar}
             accessibilityRole="button"
@@ -197,7 +219,7 @@ export default function ProfileScreen(): JSX.Element {
               height: 104,
               borderRadius: 52,
               borderWidth: 3,
-              borderColor: '#FFFFFF',
+              borderColor: ringColor,
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
@@ -208,7 +230,14 @@ export default function ProfileScreen(): JSX.Element {
               elevation: 4,
             }}
           >
-            <Avatar uri={form.avatarUri} name={form.preferredName} handle={form.handle} size={98} />
+            <Avatar
+              uri={form.avatarUri}
+              name={form.preferredName}
+              handle={form.handle}
+              size={98}
+              bg={avatarBg}
+              fg={avatarFg}
+            />
             <View
               style={{
                 position: 'absolute',
@@ -217,186 +246,199 @@ export default function ProfileScreen(): JSX.Element {
                 width: 28,
                 height: 28,
                 borderRadius: 14,
-                backgroundColor: '#0F172A',
+                backgroundColor: badgeBg,
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderWidth: 2,
-                borderColor: '#FFFFFF',
+                borderColor: badgeBorder,
               }}
             >
-              <Camera size={14} color="#FFFFFF" />
+              <Camera size={14} color={badgeIcon} />
             </View>
           </Pressable>
           {form.avatarUri ? (
             <Pressable onPress={removeAvatar} className="mt-2">
-              <Text className="text-ink-soft text-xs">{t('profile.removePhoto')}</Text>
+              <Text className="text-ink-soft dark:text-[#AD9C86] text-xs">{t('profile.removePhoto')}</Text>
             </Pressable>
           ) : null}
-          <Text className="text-ink text-xl font-bold mt-3">
+          <Text className="text-ink dark:text-[#D2C3AF] text-xl font-bold mt-3">
             {form.preferredName || t('profile.yourName')}
           </Text>
           {form.handle ? (
-            <Text className="text-ink-mute text-sm">@{normalizeHandle(form.handle)}</Text>
+            <Text className="text-ink-mute dark:text-[#8A7860] text-sm">@{normalizeHandle(form.handle)}</Text>
           ) : null}
         </View>
 
-        {/* Language switch */}
-        <View className="px-5 py-4 border-b border-slate-100">
-          <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
-            {t('profile.language')}
-          </Text>
-          <View className="flex-row" style={{ gap: 8 }}>
-            {(['en', 'fa'] as const).map((code) => {
-              const active = lang === code;
-              return (
-                <Pressable
-                  key={code}
-                  onPress={() => setLang(code)}
-                  className={`flex-1 flex-row items-center justify-center rounded-full py-3 ${
-                    active ? 'bg-bubble-active' : 'bg-bg-card'
-                  }`}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  accessibilityLabel={code === 'en' ? 'English' : 'فارسی'}
-                >
-                  {active ? (
-                    <Check size={16} color="#FFFFFF" style={{ marginHorizontal: 4 }} />
-                  ) : null}
-                  <Text
-                    className={`font-bold ${active ? 'text-white' : 'text-ink'}`}
-                  >
-                    {code === 'en' ? 'English' : 'فارسی'}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <View className="flex-row py-5 border-b border-slate-100">
+        {/* Stats */}
+        <View className="flex-row py-5 border-b border-slate-100 dark:border-[#33271A]">
           <View className="flex-1 items-center px-1">
-            <Text className="text-ink text-2xl font-extrabold">{d(stats.total)}</Text>
+            <Text className="text-ink dark:text-[#D2C3AF] text-2xl font-extrabold">{d(stats.total)}</Text>
             <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1 text-center">
               {t('profile.meals')}
             </Text>
           </View>
           <View className="flex-1 items-center px-1">
-            <Text className="text-ink text-2xl font-extrabold">{d(stats.pct)}%</Text>
+            <Text className="text-ink dark:text-[#D2C3AF] text-2xl font-extrabold">{d(stats.pct)}%</Text>
             <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1 text-center">
               {t('profile.onPath')}
             </Text>
           </View>
           <View className="flex-1 items-center px-1">
-            <Text className="text-ink text-2xl font-extrabold">{d(stats.uniqueDays)}</Text>
+            <Text className="text-ink dark:text-[#D2C3AF] text-2xl font-extrabold">{d(stats.uniqueDays)}</Text>
             <Text className="text-path-dark text-[11px] tracking-widest font-bold mt-1 text-center">
               {t('profile.daysLogged')}
             </Text>
           </View>
         </View>
 
+        {/* Badges */}
         <BadgeStrip badges={badges} />
 
-        <View className="px-5 pt-6">
-          <Field label={t('profile.fld.name')}>
+        {/* Appearance — language + theme */}
+        <SectionTitle dark={dark}>{t('profile.appearance')}</SectionTitle>
+        <View className="px-5 pb-5 border-b border-slate-100 dark:border-[#33271A]">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-ink dark:text-[#D2C3AF] text-base">{t('profile.language')}</Text>
+            <SlideToggle
+              on={lang === 'fa'}
+              onToggle={() => setLang(lang === 'fa' ? 'en' : 'fa')}
+              width={116}
+              trackColor={trackColor}
+              knobContent={<Check size={16} color="#FFFFFF" />}
+              sideContent={
+                <Text style={{ color: iconColor, fontWeight: '700', fontSize: 13 }}>
+                  {lang === 'fa' ? 'فارسی' : 'English'}
+                </Text>
+              }
+              accessibilityLabel={t('profile.language')}
+            />
+          </View>
+
+          <View className="flex-row items-center justify-between">
+            <Text className="text-ink dark:text-[#D2C3AF] text-base">{t('profile.theme')}</Text>
+            <SlideToggle
+              on={dark}
+              onToggle={toggleTheme}
+              width={116}
+              trackColor={trackColor}
+              knobContent={
+                dark ? <Moon size={16} color="#FFFFFF" /> : <Sun size={16} color="#FFFFFF" />
+              }
+              sideContent={
+                dark ? <Sun size={15} color="#8A7860" /> : <Moon size={15} color="#94A3B8" />
+              }
+              accessibilityLabel={t('profile.theme')}
+            />
+          </View>
+        </View>
+
+        {/* Personal info */}
+        <SectionTitle dark={dark}>{t('profile.personalInfo')}</SectionTitle>
+        <View className="px-5">
+          <Field label={t('profile.fld.name')} dark={dark}>
             <TextInput
               value={form.preferredName}
               onChangeText={(v) => setForm((s) => ({ ...s, preferredName: v }))}
               placeholder={t('profile.fld.namePh')}
-              placeholderTextColor="#94A3B8"
-              className="text-ink text-base py-2"
+              placeholderTextColor={placeholderColor}
+              className="text-ink dark:text-[#D2C3AF] text-base py-2"
             />
           </Field>
 
-          <Field label={t('profile.fld.handle')}>
+          <Field label={t('profile.fld.handle')} dark={dark}>
             <View className="flex-row items-center">
-              <Text className="text-ink-mute text-base mr-1">@</Text>
+              <Text className="text-ink-mute dark:text-[#8A7860] text-base mr-1">@</Text>
               <TextInput
                 value={form.handle}
                 onChangeText={(v) => setForm((s) => ({ ...s, handle: v }))}
                 placeholder={t('profile.fld.handlePh')}
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={placeholderColor}
                 autoCapitalize="none"
-                className="flex-1 text-ink text-base py-2"
+                className="flex-1 text-ink dark:text-[#D2C3AF] text-base py-2"
               />
             </View>
           </Field>
 
-          <Field label={t('profile.fld.phone')}>
+          <Field label={t('profile.fld.phone')} dark={dark}>
             <TextInput
               value={form.phoneNumber}
               onChangeText={(v) => setForm((s) => ({ ...s, phoneNumber: v }))}
               placeholder="+1 555 123 4567"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={placeholderColor}
               keyboardType="phone-pad"
-              className="text-ink text-base py-2"
+              className="text-ink dark:text-[#D2C3AF] text-base py-2"
             />
           </Field>
 
-          <Field label={t('profile.fld.email')}>
+          <Field label={t('profile.fld.email')} dark={dark}>
             <TextInput
               value={form.email}
               onChangeText={(v) => setForm((s) => ({ ...s, email: v }))}
               placeholder="you@example.com"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={placeholderColor}
               keyboardType="email-address"
               autoCapitalize="none"
-              className="text-ink text-base py-2"
+              className="text-ink dark:text-[#D2C3AF] text-base py-2"
             />
           </Field>
 
-          <Field label={t('profile.fld.bio')}>
+          <Field label={t('profile.fld.bio')} dark={dark}>
             <TextInput
               value={form.bio}
               onChangeText={(v) => setForm((s) => ({ ...s, bio: v }))}
               placeholder={t('profile.fld.bioPh')}
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={placeholderColor}
               multiline
-              className="text-ink text-base py-2"
+              className="text-ink dark:text-[#D2C3AF] text-base py-2"
             />
           </Field>
-
-          <View className="mt-4 mb-2">
-            <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">
-              {t('profile.joined')}
-            </Text>
-            <Text className="text-ink text-base">{formatJoined(form.joinedAt)}</Text>
-          </View>
         </View>
 
+        {/* Account */}
         {isSupabaseConfigured ? (
-          <View className="px-5 py-4 mt-4 border-t border-slate-100">
-            <Text className="text-xs uppercase tracking-widest text-ink-mute mb-2">
-              {t('auth.account')}
-            </Text>
-            {accountEmail ? (
-              <>
-                <Text className="text-ink text-sm mb-3">
-                  {t('auth.signedInAs', { email: accountEmail })}
-                </Text>
-                <Pressable
-                  onPress={() => setLogoutConfirm(true)}
-                  className="rounded-full py-3 items-center bg-bg-card"
-                  accessibilityRole="button"
-                  accessibilityLabel={t('auth.logOut')}
-                >
-                  <Text className="text-ink font-bold tracking-widest">{t('auth.logOut')}</Text>
-                </Pressable>
-              </>
-            ) : (
-              <>
-                <Text className="text-ink-soft text-sm mb-3">{t('auth.anonNote')}</Text>
-                <Pressable
-                  onPress={openSignIn}
-                  className="rounded-full py-3 items-center bg-bubble-active"
-                  accessibilityRole="button"
-                  accessibilityLabel={t('auth.signInCta')}
-                >
-                  <Text className="text-white font-bold tracking-widest">{t('auth.signInCta')}</Text>
-                </Pressable>
-              </>
-            )}
-          </View>
+          <>
+            <SectionTitle dark={dark}>{t('auth.account')}</SectionTitle>
+            <View className="px-5 pb-4">
+              {accountEmail ? (
+                <>
+                  <Text className="text-ink dark:text-[#D2C3AF] text-sm mb-3">
+                    {t('auth.signedInAs', { email: accountEmail })}
+                  </Text>
+                  <Pressable
+                    onPress={() => setLogoutConfirm(true)}
+                    className="rounded-full py-3 items-center bg-bg-card dark:bg-[#241B12]"
+                    accessibilityRole="button"
+                    accessibilityLabel={t('auth.logOut')}
+                  >
+                    <Text className="text-ink dark:text-[#D2C3AF] font-bold tracking-widest">
+                      {t('auth.logOut')}
+                    </Text>
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  <Text className="text-ink-soft dark:text-[#AD9C86] text-sm mb-3">{t('auth.anonNote')}</Text>
+                  <Pressable
+                    onPress={openSignIn}
+                    className="rounded-full py-3 items-center bg-bubble-active"
+                    accessibilityRole="button"
+                    accessibilityLabel={t('auth.signInCta')}
+                  >
+                    <Text className="text-white font-bold tracking-widest">{t('auth.signInCta')}</Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
+          </>
         ) : null}
+
+        {/* Joined — bottom of the page */}
+        <View className="px-5 pt-4 pb-2 border-t border-slate-100 dark:border-[#33271A]">
+          <Text className="text-xs uppercase tracking-widest text-ink-mute dark:text-[#8A7860] mb-1">
+            {t('profile.joined')}
+          </Text>
+          <Text className="text-ink dark:text-[#D2C3AF] text-base">{formatJoined(form.joinedAt)}</Text>
+        </View>
       </ScrollView>
 
       {logoutConfirm ? (
@@ -413,11 +455,11 @@ export default function ProfileScreen(): JSX.Element {
             padding: 24,
           }}
         >
-          <View className="bg-white rounded-3xl p-6 w-full" style={{ maxWidth: 360 }}>
-            <Text className="text-ink text-lg font-extrabold text-center mb-1">
+          <View className="bg-white dark:bg-[#241B12] rounded-3xl p-6 w-full" style={{ maxWidth: 360 }}>
+            <Text className="text-ink dark:text-[#D2C3AF] text-lg font-extrabold text-center mb-1">
               {t('auth.logoutConfirmTitle')}
             </Text>
-            <Text className="text-ink-soft text-sm text-center mb-5">
+            <Text className="text-ink-soft dark:text-[#AD9C86] text-sm text-center mb-5">
               {t('auth.logoutConfirmBody')}
             </Text>
             <Pressable
@@ -430,11 +472,11 @@ export default function ProfileScreen(): JSX.Element {
             </Pressable>
             <Pressable
               onPress={() => setLogoutConfirm(false)}
-              className="rounded-full py-3 items-center bg-bg-card"
+              className="rounded-full py-3 items-center bg-bg-card dark:bg-[#160F09]"
               accessibilityRole="button"
               accessibilityLabel={t('common.cancel')}
             >
-              <Text className="text-ink font-bold tracking-wide">{t('common.cancel')}</Text>
+              <Text className="text-ink dark:text-[#D2C3AF] font-bold tracking-wide">{t('common.cancel')}</Text>
             </Pressable>
           </View>
         </View>
@@ -443,11 +485,31 @@ export default function ProfileScreen(): JSX.Element {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }): JSX.Element {
+function SectionTitle({ children, dark }: { children: React.ReactNode; dark: boolean }): JSX.Element {
+  return (
+    <Text
+      className={`px-5 pt-5 pb-2 text-xs uppercase tracking-widest ${
+        dark ? 'text-[#8A7860]' : 'text-ink-mute'
+      }`}
+    >
+      {children}
+    </Text>
+  );
+}
+
+function Field({
+  label,
+  children,
+  dark,
+}: {
+  label: string;
+  children: React.ReactNode;
+  dark: boolean;
+}): JSX.Element {
   return (
     <View className="mb-4">
-      <Text className="text-xs uppercase tracking-widest text-ink-mute mb-1">{label}</Text>
-      <View className="border-b border-slate-200">{children}</View>
+      <Text className="text-xs uppercase tracking-widest text-ink-mute dark:text-[#8A7860] mb-1">{label}</Text>
+      <View className={`border-b ${dark ? 'border-[#33271A]' : 'border-slate-200'}`}>{children}</View>
     </View>
   );
 }

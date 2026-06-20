@@ -204,6 +204,9 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'profile.joined': 'Joined',
     'profile.language': 'Language',
     'profile.badges': 'Badges',
+    'profile.appearance': 'Appearance',
+    'profile.personalInfo': 'Personal info',
+    'profile.theme': 'Theme',
 
     // Badges
     'badges.title': 'Badges',
@@ -488,6 +491,9 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'profile.joined': 'تاریخ پیوستن',
     'profile.language': 'زبان',
     'profile.badges': 'نشان‌ها',
+    'profile.appearance': 'نمایش',
+    'profile.personalInfo': 'اطلاعات شخصی',
+    'profile.theme': 'تم',
 
     // Badges
     'badges.title': 'نشان‌ها',

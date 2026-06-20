@@ -7,6 +7,7 @@ import { Platform, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { TamaguiProvider } from 'tamagui';
+import { useApplyTheme } from '@/hooks/useApplyTheme';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useOtaUpdates } from '@/hooks/useOtaUpdates';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
@@ -19,6 +20,7 @@ export default function RootLayout(): JSX.Element {
   useAuthSession();
   useSyncEngine();
   useOtaUpdates();
+  useApplyTheme();
 
   // Drive the document's lang/dir, and inject the Samim @font-face + a
   // forced family rule straight into <head>. RN-Web sets font-family on every
